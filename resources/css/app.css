@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+@source "../views";
+
+/*
+|--------------------------------------------------------------------------
+| Palet & tipografi
+|--------------------------------------------------------------------------
+| Nuansa hijau hutan dengan aksen koral dan kuning mentega, di atas latar
+| krem hangat. Ubah nilai di bawah ini untuk mengganti seluruh tampilan.
+*/
+
+@theme {
+    --color-krem: #fbf7ee;
+    --color-krem-tua: #f3ecdd;
+
+    --color-hijau-50: #f1f8f3;
+    --color-hijau-100: #e0f0e6;
+    --color-hijau-200: #bfe3cd;
+    --color-hijau-300: #8ecfa9;
+    --color-hijau-400: #58b382;
+    --color-hijau-500: #34a06c;
+    --color-hijau-600: #248257;
+    --color-hijau-700: #1c6b49;
+    --color-hijau-800: #15543a;
+    --color-hijau-900: #10452f;
+
+    --color-koral-100: #fde7de;
+    --color-koral-400: #f78a5f;
+    --color-koral-500: #f26c3d;
+    --color-koral-600: #db5b2e;
+
+    --color-kuning-100: #fdf1d2;
+    --color-kuning-300: #fad986;
+    --color-kuning-400: #f7c244;
+    --color-kuning-500: #e5a91f;
+
+    --color-langit-200: #d3eaf7;
+    --color-langit-400: #8fc9e8;
+
+    --color-tinta: #13241c;
+    --color-tinta-lembut: #5d6f66;
+
+    --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Fredoka", "Nunito", ui-sans-serif, system-ui, sans-serif;
+
+    --radius-kartu: 2rem;
+    --radius-blob: 3rem;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        background-color: var(--color-krem);
+        color: var(--color-tinta);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        letter-spacing: -0.015em;
+    }
+
+    /* Jarak aman agar judul section tidak tertutup navbar saat diklik dari menu. */
+    [id] {
+        scroll-margin-top: 7rem;
+    }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Utilitas tambahan
+|--------------------------------------------------------------------------
+*/
+
+@utility bayang-kartu {
+    box-shadow: 0 24px 45px -24px rgba(16, 69, 47, 0.35);
+}
+
+@utility bayang-timbul {
+    box-shadow: 0 18px 30px -14px rgba(242, 108, 61, 0.55);
+}
+
+@utility bayang-lembut {
+    box-shadow: 0 10px 30px -18px rgba(19, 36, 28, 0.4);
+}
+
+/* Bingkai foto organik ala buku cerita anak. */
+@utility blob-a {
+    border-radius: 56% 44% 48% 52% / 48% 46% 54% 52%;
+}
+
+@utility blob-b {
+    border-radius: 44% 56% 54% 46% / 56% 52% 48% 44%;
+}
+
+/* Garis bawah krayon di belakang kata yang disorot. */
+@utility sorot-krayon {
+    position: relative;
+    display: inline-block;
+}
+
+@utility sorot-krayon-isi {
+    position: absolute;
+    left: -0.15em;
+    right: -0.15em;
+    bottom: 0.02em;
+    height: 0.42em;
+    border-radius: 999px;
+    z-index: -1;
+}
+
+@utility teks-rintisan {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+/*
+    Gaya isi artikel blog. Isi ditulis panitia dengan Markdown lalu diubah
+    jadi HTML, sehingga elemennya tidak bisa diberi class satu per satu.
+*/
+@utility prose-artikel {
+    color: var(--color-tinta-lembut);
+    line-height: 1.8;
+
+    & > * + * {
+        margin-top: 1.25rem;
+    }
+
+    & h2 {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        line-height: 1.3;
+        color: var(--color-tinta);
+        margin-top: 2.5rem;
+    }
+
+    & h3 {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        line-height: 1.4;
+        color: var(--color-tinta);
+        margin-top: 2rem;
+    }
+
+    & strong {
+        color: var(--color-tinta);
+        font-weight: 700;
+    }
+
+    & a {
+        color: var(--color-hijau-700);
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    & ul,
+    & ol {
+        padding-left: 1.5rem;
+    }
+
+    & ul {
+        list-style-type: disc;
+    }
+
+    & ol {
+        list-style-type: decimal;
+    }
+
+    & li + li {
+        margin-top: 0.5rem;
+    }
+
+    & blockquote {
+        border-left: 4px solid var(--color-hijau-200);
+        padding-left: 1.25rem;
+        font-style: italic;
+        color: var(--color-tinta);
+    }
+
+    & img {
+        border-radius: 1.5rem;
+    }
+
+    & code {
+        background: var(--color-hijau-100);
+        padding: 0.1rem 0.4rem;
+        border-radius: 0.4rem;
+        font-size: 0.9em;
+    }
+
+    & hr {
+        border-color: var(--color-hijau-100);
+        margin-top: 2rem;
+    }
+}
+
+/* Grid kolase foto "Keseharian di Sekolah". */
+@utility kolase {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .kolase {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-auto-rows: 9rem;
+    }
+
+    /*
+      Satu kelompok enam foto menutupi 4 kolom x 2 baris tanpa sisa:
+      satu foto tinggi (2 baris) + satu foto lebar (2 kolom) + empat biasa
+      = 2 + 2 + 4 = 8 sel.
+
+      Foto lebar harus di urutan ke-3. Di urutan ke-4 ia tiba saat tinggal
+      satu kolom tersisa di baris pertama, lalu turun ke baris berikutnya
+      dan meninggalkan satu sel kosong di kanan atas.
+    */
+    .kolase > :nth-child(6n + 3) {
+        grid-column: span 2;
+    }
+
+    /*
+      Foto tinggi hanya memanjang bila kelompok enamnya benar-benar terisi.
+      :nth-last-child(n + 6) berarti "masih ada minimal enam foto dari sini
+      sampai akhir" - tanpa syarat itu, foto terakhir yang kebetulan jatuh
+      di awal kelompok menyisakan satu kolom kosong setinggi dua baris.
+    */
+    .kolase > :nth-child(6n + 1):nth-last-child(n + 6) {
+        grid-row: span 2;
+    }
+}
+
+/* Animasi ringan saat section masuk layar (lihat resources/js/app.js). */
+@layer utilities {
+    .muncul {
+        opacity: 0;
+        transform: translateY(1.25rem);
+        transition:
+            opacity 0.6s ease-out,
+            transform 0.6s ease-out;
+    }
+
+    .muncul.tampil {
+        opacity: 1;
+        transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .muncul {
+            opacity: 1;
+            transform: none;
+            transition: none;
+        }
+    }
+}
