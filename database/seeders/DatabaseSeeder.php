@@ -2,29 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::query()->firstOrCreate(
-            ['email' => 'admin@ranurulanwar.sch.id'],
-            [
-                'name' => 'Panitia PPDB',
-                // GANTI password ini setelah login pertama.
-                'password' => 'password',
-            ]
-        );
-
-        // GaleriSeeder mendaftarkan foto asli dari sekolah yang sudah ada di
-        // public/images/galeri, jadi aman dijalankan di server sungguhan.
+        // Tiap bagian berdiri sendiri supaya di server produksi bisa dipanggil
+        // satu per satu dengan --class, tanpa ikut membawa data contoh.
+        //
+        // AkunPanitiaSeeder  : akun untuk masuk panel admin.
+        // GaleriSeeder       : foto asli dari sekolah, aman untuk produksi.
+        // PendaftaranSeeder  : 12 pendaftar fiktif, hanya untuk pengembangan.
         //
         // Artikel blog sengaja tidak diisi otomatis: panitia menulis sendiri
         // dari panel admin, supaya tidak ada tulisan karangan yang terbit
         // atas nama sekolah.
         $this->call([
+            AkunPanitiaSeeder::class,
             GaleriSeeder::class,
             // PendaftaranSeeder::class,
         ]);

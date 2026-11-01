@@ -65,14 +65,29 @@ Buka <http://localhost:8000>.
 
 | Email | Kata sandi |
 | --- | --- |
-| `admin@ranurulanwar.sch.id` | `password` |
+| `admin@nurulanwar.website` | `password` |
 
-**Ganti kata sandi ini sebelum website dipakai sungguhan.** Cara tercepat:
+**Ganti akun ini sebelum website dipakai sungguhan:**
 
 ```bash
-php artisan tinker
->>> App\Models\User::where('email', 'admin@ranurulanwar.sch.id')->update(['password' => 'sandi-baru-anda']);
+php artisan admin:akun
 ```
+
+Perintah itu menanyakan email, nama, dan sandi baru — ketikan sandinya
+tersembunyi dan diminta dua kali. Untuk menambah akun panitia kedua:
+`php artisan admin:akun --baru`.
+
+> **Jangan** mengganti sandi lewat `User::where(...)->update(['password' => ...])`
+> di tinker. `Builder::update()` memanggil query builder dasar dan melewati cast
+> `'hashed'` di model, jadi sandinya tersimpan mentah: login gagal **dan** sandi
+> polos tertinggal di database. Kalau tetap ingin lewat tinker, muat modelnya
+> lalu simpan, supaya cast-nya berjalan:
+>
+> ```php
+> $u = App\Models\User::where('email', 'admin@nurulanwar.website')->first();
+> $u->password = 'sandi-baru-anda';
+> $u->save();
+> ```
 
 ## Pengaturan dari panel admin
 
@@ -212,22 +227,33 @@ Hampir seluruh teks dan data sekolah tidak perlu menyentuh file Blade:
 Setelah mengubah `.env` di server produksi, jalankan `php artisan config:clear`.
 Mengubah lewat panel admin tidak perlu perintah apa pun — langsung berlaku.
 
-## Data contoh
+## Seeder
 
-`php artisan migrate --seed` menjalankan dua seeder. `GaleriSeeder`
-mendaftarkan enam foto asli dari sekolah yang sudah ada di
-`public/images/galeri/` — ini memang untuk dipakai, jangan dihapus.
+Tiap seeder berdiri sendiri supaya bisa dipanggil terpisah dengan `--class`:
 
-`PendaftaranSeeder` membuat 12 pendaftar fiktif supaya panel admin tidak
-kosong. Hapus sebelum dipakai sungguhan:
+| Seeder | Isi | Produksi? |
+| --- | --- | --- |
+| `AkunPanitiaSeeder` | Akun bawaan untuk masuk panel admin. Dilewati bila sudah ada akun. | Boleh, tapi `php artisan admin:akun` lebih baik |
+| `GaleriSeeder` | Enam foto asli sekolah yang sudah ada di `public/images/galeri/` | **Ya**, ini memang untuk dipakai |
+| `PendaftaranSeeder` | 12 pendaftar fiktif supaya tabel tidak kosong saat mengembangkan | Tidak |
+
+`php artisan migrate --seed` menjalankan yang terdaftar di
+`database/seeders/DatabaseSeeder.php`. `PendaftaranSeeder` sengaja
+dinonaktifkan di sana — aktifkan sendiri bila sedang mengembangkan.
+
+Di server produksi, panggil yang diperlukan saja:
+
+```bash
+php artisan db:seed --class=GaleriSeeder --force
+php artisan admin:akun          # buat akun panitia dengan sandi asli
+```
+
+Untuk membuang pendaftar fiktif yang sempat masuk:
 
 ```bash
 php artisan tinker
 >>> App\Models\Pendaftaran::truncate();
 ```
-
-Atau hapus pemanggilan `PendaftaranSeeder` di
-`database/seeders/DatabaseSeeder.php`.
 
 Blog tidak diisi data contoh: artikel ditulis sendiri dari panel admin.
 
