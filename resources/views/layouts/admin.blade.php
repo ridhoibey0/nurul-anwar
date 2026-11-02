@@ -8,7 +8,7 @@
 
     <title>@yield('title', 'Panel Admin') — {{ config('sekolah.nama_pendek') }}</title>
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
             :class="menu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
         >
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 text-white">
-                <img src="{{ asset('images/kiddies/logo-mark.svg') }}" alt="" class="h-8 w-8">
+                <img src="{{ logo_url() }}" alt="" class="h-8 w-8">
                 <span class="font-display text-lg">Panel Admin</span>
             </a>
 

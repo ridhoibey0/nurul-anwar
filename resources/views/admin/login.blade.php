@@ -7,7 +7,7 @@
 
     <title>Login Panitia — {{ config('sekolah.nama_pendek') }}</title>
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +18,7 @@
 <body class="flex min-h-full items-center justify-center bg-hijau-900 px-5 py-12 font-sans">
     <div class="w-full max-w-md">
         <a href="{{ route('home') }}" class="flex items-center justify-center gap-2.5 text-white">
-            <img src="{{ asset('images/kiddies/logo-mark.svg') }}" alt="" class="h-9 w-9">
+            <img src="{{ logo_url() }}" alt="" class="h-9 w-9">
             <span class="font-display text-xl">{{ config('sekolah.nama_pendek') }}</span>
         </a>
 

@@ -14,7 +14,12 @@
         </div>
     @endunless
 
-    <form method="POST" action="{{ route('admin.pengaturan.sekolah.update') }}" class="grid gap-6">
+    <form
+        method="POST"
+        action="{{ route('admin.pengaturan.sekolah.update') }}"
+        enctype="multipart/form-data"
+        class="grid gap-6"
+    >
         @csrf
         @method('PATCH')
 
@@ -194,6 +199,111 @@
                     label="Tautan YouTube"
                     :nilai="$sekolah['sosial']['youtube']"
                 />
+            </div>
+        </section>
+
+        {{-- Logo & gambar --}}
+        <section class="rounded-[1.75rem] bg-white p-7 bayang-lembut">
+            <h2 class="font-display text-lg text-tinta">Logo &amp; gambar</h2>
+            <p class="mt-1 text-sm text-tinta-lembut">
+                Gambar yang diunggah di sini langsung menggantikan gambar bawaan website,
+                tanpa perlu menyentuh berkas di server.
+            </p>
+
+            <div class="mt-5 grid gap-7 sm:grid-cols-2">
+
+                {{-- Logo --}}
+                <div>
+                    <p class="text-sm font-semibold text-tinta">Logo sekolah</p>
+                    <p class="mt-0.5 text-xs text-tinta-lembut">
+                        Dipakai di navbar, footer, dan panel admin ini.
+                    </p>
+
+                    <div class="mt-3 flex items-start gap-4">
+                        <img
+                            src="{{ logo_url() }}"
+                            alt="Logo yang sekarang dipakai"
+                            class="h-20 w-20 shrink-0 rounded-2xl bg-krem object-contain p-2"
+                            width="80"
+                            height="80"
+                        >
+
+                        <div class="min-w-0 pt-1 text-xs text-tinta-lembut">
+                            @if ($logoBawaan)
+                                Masih memakai logo bawaan website.
+                            @else
+                                <label class="flex cursor-pointer items-start gap-2">
+                                    <input
+                                        type="checkbox"
+                                        name="hapus_logo"
+                                        value="1"
+                                        class="mt-px h-4 w-4 shrink-0 accent-koral-500"
+                                    >
+                                    Kembalikan ke logo bawaan saat menyimpan
+                                </label>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <x-form.berkas
+                            nama="logo"
+                            :label="$logoBawaan ? 'Unggah logo' : 'Ganti logo'"
+                            terima=".png,.jpg,.jpeg,.webp"
+                            keterangan="PNG, JPG, atau WEBP · maksimal 2 MB"
+                        />
+                    </div>
+
+                    <p class="mt-3 text-xs text-tinta-lembut">
+                        Paling pas logo berbentuk persegi atau bundar, PNG dengan latar
+                        transparan. Logo yang memanjang tetap diterima, hanya tampil lebih
+                        kecil karena dipasang di dalam kotak persegi. Berkas SVG belum bisa
+                        diterima karena alasan keamanan.
+                    </p>
+                </div>
+
+                {{-- Gambar bagikan --}}
+                <div>
+                    <p class="text-sm font-semibold text-tinta">Gambar bagikan</p>
+                    <p class="mt-0.5 text-xs text-tinta-lembut">
+                        Yang muncul saat tautan website dikirim lewat WhatsApp atau
+                        dibagikan ke media sosial.
+                    </p>
+
+                    <img
+                        src="{{ gambar_bagikan_url() }}"
+                        alt="Gambar bagikan yang sekarang dipakai"
+                        class="mt-3 aspect-[1200/630] w-full rounded-2xl bg-krem object-cover"
+                    >
+
+                    @unless ($bagikanBawaan)
+                        <label class="mt-3 flex cursor-pointer items-start gap-2 text-xs text-tinta-lembut">
+                            <input
+                                type="checkbox"
+                                name="hapus_gambar_bagikan"
+                                value="1"
+                                class="mt-px h-4 w-4 shrink-0 accent-koral-500"
+                            >
+                            Kembalikan ke gambar bawaan saat menyimpan
+                        </label>
+                    @endunless
+
+                    <div class="mt-4">
+                        <x-form.berkas
+                            nama="gambar_bagikan"
+                            :label="$bagikanBawaan ? 'Unggah gambar' : 'Ganti gambar'"
+                            terima=".png,.jpg,.jpeg,.webp"
+                            keterangan="PNG, JPG, atau WEBP · maksimal 4 MB"
+                        />
+                    </div>
+
+                    <p class="mt-3 text-xs text-tinta-lembut">
+                        Ukuran paling pas 1200 &times; 630 piksel. Pilih foto yang ramai dan
+                        jelas; inilah gambar pertama yang dilihat orang tua sebelum membuka
+                        tautannya.
+                    </p>
+                </div>
+
             </div>
         </section>
 

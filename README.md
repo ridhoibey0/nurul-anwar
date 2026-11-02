@@ -97,10 +97,21 @@ dan tanpa me-restart server.
 ### Identitas Sekolah
 
 Nama, tagline, tahun berdiri, akreditasi, alamat, kota, jam operasional,
-telepon, **nomor WhatsApp**, email, koordinat peta, dan tautan media sosial.
+telepon, **nomor WhatsApp**, email, koordinat peta, tautan media sosial,
+**logo**, dan **gambar bagikan**.
 
 - Nomor WhatsApp boleh ditulis bebas (`0812-3456-7890`, `+62 812 3456 7890`,
   atau `6281234567890`) — semuanya dirapikan sendiri ke `62xxxxxxxxxx`.
+- **Logo** diunggah di menu yang sama dan langsung berlaku di navbar, footer,
+  panel admin, serta sebagai ikon tab peramban. Gambarnya diperkecil dan
+  dipasang di kanvas persegi 512 × 512 dengan latar transparan, jadi logo
+  berbentuk apa pun tidak membuat tata letak bergeser. Berkas **SVG tidak
+  diterima** dengan sengaja: SVG boleh memuat `<script>` dan akan berjalan di
+  domain yang sama dengan panel admin — simpan dulu sebagai PNG.
+- **Gambar bagikan** adalah yang tampil saat tautan website dikirim lewat
+  WhatsApp (`og:image`). Ukuran paling pas 1200 × 630.
+- Keduanya punya pilihan **kembalikan ke bawaan**, yang memulihkan gambar asli
+  yang ikut dalam repositori tanpa perlu mengunggah apa pun.
 - Isian yang **dikosongkan tetap kosong**, tidak kembali ke nilai `.env`.
   Mengosongkan akreditasi menghilangkan lencananya dari beranda; mengosongkan
   tautan media sosial menghilangkan ikonnya dari footer dan membuat akun itu
@@ -196,6 +207,7 @@ website ini. Yang masih berisi contoh dan perlu diganti:
 | Isi | Tempat |
 | --- | --- |
 | WhatsApp, email, tautan Instagram/Facebook/YouTube | **Panel admin > Identitas Sekolah** |
+| Logo (masih logo bawaan desain, bukan logo RA Nurul Anwar) | **Panel admin > Identitas Sekolah** |
 | Tahun berdiri dan akreditasi (tampil di hero & statistik) | **Panel admin > Identitas Sekolah** |
 | Judul tiap foto galeri (sekarang masih keterangan seadanya) | **Panel admin > Galeri Foto** |
 | Kutipan orang tua | `config/konten.php` (`testimoni`, kini kosong) |
@@ -217,6 +229,7 @@ Hampir seluruh teks dan data sekolah tidak perlu menyentuh file Blade:
 | Yang ingin diganti | File |
 | --- | --- |
 | Nama sekolah, alamat, telepon, WhatsApp, media sosial, peta | **Panel admin > Identitas Sekolah** (nilai awal di `.env` bagian `SCHOOL_*`) |
+| Logo sekolah dan gambar pratinjau WhatsApp | **Panel admin > Identitas Sekolah** (bawaannya di `App\Support\Merek::BAWAAN`) |
 | Status buka/tutup PPDB, tahun ajaran, jadwal | **Panel admin > Pengaturan PPDB** (nilai awal di `.env` bagian `PPDB_*`) |
 | Jenjang, kuota, syarat berkas, alur pendaftaran | `config/ppdb.php` |
 | Jenjang, keunggulan, keseharian, daftar guru, testimoni | `config/konten.php` |
@@ -283,8 +296,8 @@ Yang sudah terpasang dan tidak perlu disentuh lagi:
 - **Alamat kanonik** di tiap halaman. `/blog?q=...` menunjuk balik ke `/blog`,
   sedangkan `/blog?page=2` berdiri sendiri karena isinya memang lain.
 - **Pratinjau tautan** (Open Graph): artikel memakai gambar sampulnya sendiri,
-  halaman lain memakai `public/images/og.jpg`. Ini yang tampil saat orang tua
-  membagikan tautan lewat WhatsApp.
+  halaman lain memakai gambar bagikan dari **Panel admin > Identitas Sekolah**.
+  Ini yang tampil saat orang tua membagikan tautan lewat WhatsApp.
 - **Data terstruktur** `EducationalOrganization` di beranda (alamat, telepon,
   koordinat) dan `BlogPosting` di tiap artikel.
 - **Halaman yang tidak boleh terindeks**: panel admin dan halaman konfirmasi
@@ -298,7 +311,7 @@ Yang masih bergantung pada Anda:
 | Google Search Console | Daftarkan domainnya, lalu kirim `https://domainanda/sitemap.xml`. |
 | Google Bisnisku | Untuk sekolah, ini lebih berpengaruh daripada apa pun di halaman. Pastikan nama, alamat, dan telepon sama persis dengan yang di website. |
 | Tautan media sosial | Selama masih domain polos di `.env`, akun sekolah sengaja tidak diklaim di data terstruktur. |
-| `public/images/og.jpg` | Ganti bila ada foto yang lebih mewakili. Ukuran 1200 × 630. |
+| Gambar bagikan | Ganti bila ada foto yang lebih mewakili, lewat **Panel admin > Identitas Sekolah**. Ukuran 1200 × 630. |
 
 ## Pengujian
 
@@ -317,6 +330,7 @@ app/Models/Pengaturan.php     identitas sekolah & PPDB, diubah dari panel admin
 app/Models/Artikel.php        artikel blog + slug & status terbit
 app/Models/Galeri.php         foto kegiatan di halaman depan
 app/Support/Gambar.php        pengecil foto unggahan (pakai GD)
+app/Support/Merek.php         logo & gambar bagikan beserta nilai bawaannya
 config/sekolah.php        identitas sekolah
 config/ppdb.php           nilai bawaan PPDB
 config/konten.php         isi landing page

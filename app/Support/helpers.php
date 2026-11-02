@@ -12,6 +12,29 @@ if (! function_exists('wa_link')) {
     }
 }
 
+if (! function_exists('logo_url')) {
+    /**
+     * URL logo sekolah: logo yang diunggah panitia bila ada, kalau belum ada
+     * jatuh ke logo bawaan. Hasilnya selalu gambar persegi, jadi aman dipasang
+     * dengan ukuran tetap.
+     */
+    function logo_url(): string
+    {
+        return \App\Support\Merek::url('logo');
+    }
+}
+
+if (! function_exists('gambar_bagikan_url')) {
+    /**
+     * URL gambar yang tampil saat tautan website dikirim lewat WhatsApp atau
+     * dibagikan ke media sosial (og:image).
+     */
+    function gambar_bagikan_url(): string
+    {
+        return \App\Support\Merek::url('gambar_bagikan');
+    }
+}
+
 if (! function_exists('canonical_url')) {
     /**
      * URL kanonik halaman ini. Query string dibuang kecuali yang benar-benar

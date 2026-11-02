@@ -25,14 +25,14 @@
     <meta property="og:url" content="{{ canonical_url() }}">
     {{-- Tautan yang dibagikan orang tua lewat WhatsApp tampil dengan gambar
          ini bila halamannya tidak punya gambar sendiri. --}}
-    <meta property="og:image" content="@yield('og_image', asset('images/og.jpg'))">
+    <meta property="og:image" content="@yield('og_image', gambar_bagikan_url())">
     <meta property="og:image:alt" content="@yield('og_image_alt', 'Siswa dan guru '.config('sekolah.nama'))">
 
     <meta name="twitter:card" content="summary_large_image">
 
     @yield('kepala')
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

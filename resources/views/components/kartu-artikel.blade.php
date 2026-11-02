@@ -20,7 +20,7 @@
             {{-- Belum ada gambar sampul: blok warna dengan logo sekolah. --}}
             <span class="flex h-full w-full items-center justify-center">
                 <img
-                    src="{{ asset('images/kiddies/logo-mark.svg') }}"
+                    src="{{ logo_url() }}"
                     alt=""
                     class="h-12 w-12 opacity-40"
                     loading="lazy"

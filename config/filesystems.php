@@ -46,6 +46,19 @@ return [
             'report' => false,
         ],
 
+        /*
+        | Logo dan gambar bagikan yang diunggah panitia dari panel admin.
+        | Lihat App\Support\Merek.
+        */
+        'merek' => [
+            'driver' => 'local',
+            'root' => public_path('images/merek'),
+            'url' => '/images/merek',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     'links' => [

@@ -23,6 +23,18 @@ return [
     'jumlah_guru' => env('SCHOOL_TEACHER_COUNT', '6'),
     'akreditasi' => env('SCHOOL_ACCREDITATION', 'B'),
 
+    /*
+    | Logo dan gambar bagikan (yang tampil saat tautan website dikirim lewat
+    | WhatsApp). Keduanya diunggah dari Panel Admin > Identitas Sekolah dan
+    | berisi jalur relatif terhadap public/.
+    |
+    | Dibiarkan kosong di sini dengan sengaja: nilai bawaannya ditulis di
+    | App\Support\Merek::BAWAAN, dan dibaca lewat logo_url() serta
+    | gambar_bagikan_url().
+    */
+    'logo' => env('SCHOOL_LOGO'),
+    'gambar_bagikan' => env('SCHOOL_SHARE_IMAGE'),
+
     // Alamat dan telepon mengikuti papan nama di gedung sekolah.
     'alamat' => env('SCHOOL_ADDRESS', 'Jl. Winaya Utama No. 20 RT 04 RW 10, Perum Cikunten Indah, Kelurahan Kahuripan, Kec. Tawang, Kota Tasikmalaya'),
     // Dipisah supaya data terstruktur untuk Google bisa menyebut kota dan

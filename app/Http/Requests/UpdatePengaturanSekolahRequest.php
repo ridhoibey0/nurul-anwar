@@ -43,6 +43,19 @@ class UpdatePengaturanSekolahRequest extends FormRequest
             'peta_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'peta_lng' => ['nullable', 'numeric', 'between:-180,180'],
             'peta_url' => ['nullable', 'url:https', 'max:255'],
+
+            /*
+            | SVG tidak diterima dengan sengaja, walau logo biasanya tersedia
+            | dalam bentuk itu: berkas SVG boleh memuat <script>, dan logo ini
+            | disajikan dari domain sekolah sendiri. Satu berkas SVG yang
+            | disiapkan orang lain lalu diunggah panitia akan berjalan sebagai
+            | kode di domain yang sama dengan panel admin.
+            */
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'gambar_bagikan' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
+
+            'hapus_logo' => ['nullable', 'boolean'],
+            'hapus_gambar_bagikan' => ['nullable', 'boolean'],
         ];
     }
 
@@ -111,6 +124,8 @@ class UpdatePengaturanSekolahRequest extends FormRequest
             'peta_lat' => 'garis lintang',
             'peta_lng' => 'garis bujur',
             'peta_url' => 'tautan Google Maps',
+            'logo' => 'logo sekolah',
+            'gambar_bagikan' => 'gambar bagikan',
         ];
     }
 
@@ -126,6 +141,13 @@ class UpdatePengaturanSekolahRequest extends FormRequest
             'facebook_url.url' => 'Tautan Facebook harus lengkap dan diawali https://.',
             'youtube_url.url' => 'Tautan YouTube harus lengkap dan diawali https://.',
             'peta_url.url' => 'Tautan Google Maps harus lengkap dan diawali https://.',
+
+            'logo.image' => 'Logo harus berupa gambar. Berkas SVG belum bisa diterima, mohon simpan dulu sebagai PNG.',
+            'logo.mimes' => 'Logo harus berupa PNG, JPG, atau WEBP. Berkas SVG belum bisa diterima.',
+            'logo.max' => 'Ukuran berkas logo maksimal 2 MB.',
+            'gambar_bagikan.image' => 'Gambar bagikan harus berupa gambar PNG, JPG, atau WEBP.',
+            'gambar_bagikan.mimes' => 'Gambar bagikan harus berupa PNG, JPG, atau WEBP.',
+            'gambar_bagikan.max' => 'Ukuran gambar bagikan maksimal 4 MB.',
         ];
     }
 }

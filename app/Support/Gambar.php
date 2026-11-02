@@ -16,6 +16,9 @@ class Gambar
     /** Sisi terpanjang hasil akhir, dalam piksel. */
     public const SISI_MAKS = 1400;
 
+    /** Sisi kanvas logo. Cukup besar untuk layar beresolusi tinggi. */
+    public const SISI_LOGO = 512;
+
     public const MUTU = 78;
 
     /**
@@ -52,6 +55,67 @@ class Gambar
         imagecopyresampled($hasil, $sumber, 0, 0, 0, 0, $lebarBaru, $tinggiBaru, $lebar, $tinggi);
 
         $berhasil = imagejpeg($hasil, $tujuan, static::MUTU);
+
+        imagedestroy($sumber);
+        imagedestroy($hasil);
+
+        return $berhasil;
+    }
+
+    /**
+     * Khusus logo: gambar dipasang di tengah kanvas persegi, sisa ruangnya
+     * dibiarkan transparan, lalu ditulis sebagai PNG.
+     *
+     * Dipaksa persegi supaya tiap tempat yang memasang logo -- navbar, footer,
+     * sidebar admin -- bisa memakai ukuran tetap tanpa logo jadi gepeng dan
+     * tanpa tata letak bergeser saat gambarnya selesai dimuat. Logo yang
+     * aslinya memanjang tetap utuh, hanya tampil lebih kecil.
+     */
+    public static function persegi(UploadedFile $berkas, string $tujuan, int $sisi = self::SISI_LOGO): bool
+    {
+        if (! function_exists('imagecreatetruecolor')) {
+            return false;
+        }
+
+        $sumber = static::baca($berkas->getRealPath(), $berkas->getMimeType());
+
+        if ($sumber === null) {
+            return false;
+        }
+
+        $lebar = imagesx($sumber);
+        $tinggi = imagesy($sumber);
+        $skala = min(1, $sisi / max($lebar, $tinggi));
+
+        $lebarBaru = max(1, (int) round($lebar * $skala));
+        $tinggiBaru = max(1, (int) round($tinggi * $skala));
+
+        $hasil = imagecreatetruecolor($sisi, $sisi);
+
+        // Pencampuran alpha dimatikan dan dibiarkan mati sampai selesai: piksel
+        // sumber disalin apa adanya beserta tingkat transparansinya, dan area
+        // kosong di sekeliling logo tetap transparan, bukan jadi hitam.
+        imagealphablending($hasil, false);
+        imagesavealpha($hasil, true);
+        imagefilledrectangle(
+            $hasil, 0, 0, $sisi, $sisi,
+            imagecolorallocatealpha($hasil, 0, 0, 0, 127),
+        );
+
+        imagecopyresampled(
+            $hasil,
+            $sumber,
+            (int) round(($sisi - $lebarBaru) / 2),
+            (int) round(($sisi - $tinggiBaru) / 2),
+            0,
+            0,
+            $lebarBaru,
+            $tinggiBaru,
+            $lebar,
+            $tinggi,
+        );
+
+        $berhasil = imagepng($hasil, $tujuan);
 
         imagedestroy($sumber);
         imagedestroy($hasil);

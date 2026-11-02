@@ -7,8 +7,16 @@ use App\Http\Requests\UpdatePengaturanPpdbRequest;
 use App\Http\Requests\UpdatePengaturanSekolahRequest;
 use App\Models\Pendaftaran;
 use App\Models\Pengaturan;
+use App\Support\Gambar;
+use App\Support\Merek;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PengaturanController extends Controller
 {
@@ -38,6 +46,16 @@ class PengaturanController extends Controller
         'peta_url' => 'sekolah_peta_url',
     ];
 
+    /**
+     * Isian berkas di formulir yang sama => kunci di tabel pengaturan. Dipisah
+     * dari PEMETAAN karena isinya berkas unggahan, bukan teks: penyimpanannya
+     * lewat simpanMerek(), bukan disalin langsung.
+     */
+    private const MEREK = [
+        'logo' => 'sekolah_logo',
+        'gambar_bagikan' => 'sekolah_gambar_bagikan',
+    ];
+
     public function editSekolah(): View
     {
         return view('admin.sekolah', [
@@ -45,6 +63,8 @@ class PengaturanController extends Controller
             // Selama kunci ini belum pernah disimpan, yang tampil di isian
             // adalah nilai bawaan dari .env.
             'pernahDisimpan' => Pengaturan::ambil('sekolah_nama') !== null,
+            'logoBawaan' => Merek::bawaan('logo'),
+            'bagikanBawaan' => Merek::bawaan('gambar_bagikan'),
         ]);
     }
 
@@ -60,11 +80,105 @@ class PengaturanController extends Controller
             $simpan[$kunci] = (string) ($data[$isian] ?? '');
         }
 
-        Pengaturan::simpan($simpan);
+        $sebelumnya = $this->jalurMerek();
+        $merek = $this->simpanMerek($request);
+
+        Pengaturan::simpan($simpan + $merek);
+
+        // Berkas lama dihapus setelah jalur barunya tersimpan, bukan
+        // sebelumnya: kalau penyimpanan gagal di tengah jalan, pengaturan
+        // tidak jadi menunjuk ke berkas yang sudah lenyap.
+        foreach (array_keys($merek) as $kunci) {
+            $this->hapusMerek($sebelumnya[$kunci]);
+        }
 
         return redirect()
             ->route('admin.pengaturan.sekolah')
             ->with('sukses', 'Identitas sekolah tersimpan. Perubahan langsung tampil di website.');
+    }
+
+    /**
+     * Jalur logo dan gambar bagikan yang tersimpan sekarang.
+     *
+     * @return array<string, string|null>
+     */
+    private function jalurMerek(): array
+    {
+        $hasil = [];
+
+        foreach (self::MEREK as $kunci) {
+            $hasil[$kunci] = Pengaturan::ambil($kunci);
+        }
+
+        return $hasil;
+    }
+
+    /**
+     * Proses unggahan logo dan gambar bagikan, lalu kembalikan jalur barunya.
+     *
+     * Hanya jenis yang benar-benar disentuh panitia yang muncul di hasilnya,
+     * supaya menyimpan formulir tanpa memilih berkas tidak menghapus gambar
+     * yang sudah ada.
+     *
+     * Berbeda dari isian teks, keduanya bernilai null saat dikembalikan ke
+     * bawaan: null berarti "pakai berkas bawaan", bukan "tidak ada gambar".
+     *
+     * @return array<string, string|null>
+     */
+    private function simpanMerek(Request $request): array
+    {
+        $hasil = [];
+
+        foreach (self::MEREK as $isian => $kunci) {
+            $berkas = $request->file($isian);
+
+            if ($berkas instanceof UploadedFile) {
+                $baru = $this->unggahMerek($isian, $berkas);
+
+                if ($baru === null) {
+                    throw ValidationException::withMessages([
+                        $isian => 'Gambar gagal diproses. Pastikan ekstensi GD aktif di server.',
+                    ]);
+                }
+
+                $hasil[$kunci] = $baru;
+
+                continue;
+            }
+
+            if ($request->boolean('hapus_'.$isian)) {
+                $hasil[$kunci] = null;
+            }
+        }
+
+        return $hasil;
+    }
+
+    /** @return string|null jalur relatif public/, atau null bila gagal diproses */
+    private function unggahMerek(string $jenis, UploadedFile $berkas): ?string
+    {
+        $persegi = $jenis === 'logo';
+        $nama = $jenis.'-'.now()->format('Ymd').'-'.Str::random(8).($persegi ? '.png' : '.jpg');
+        $tujuan = Storage::disk(Merek::DISK)->path($nama);
+
+        // GD menulis langsung ke filesystem, jadi foldernya harus sudah ada.
+        File::ensureDirectoryExists(dirname($tujuan));
+
+        $berhasil = $persegi
+            ? Gambar::persegi($berkas, $tujuan)
+            : Gambar::kecilkan($berkas, $tujuan);
+
+        return $berhasil ? 'images/'.Merek::DISK.'/'.$nama : null;
+    }
+
+    private function hapusMerek(?string $jalur): void
+    {
+        // Hanya berkas unggahan yang boleh dihapus. Tanpa penjagaan ini,
+        // "kembalikan ke bawaan" bisa menghapus logo bawaan dari
+        // public/images/kiddies dan website kehilangan logo sama sekali.
+        if (Merek::unggahan($jalur)) {
+            Storage::disk(Merek::DISK)->delete(basename((string) $jalur));
+        }
     }
 
     public function edit(): View

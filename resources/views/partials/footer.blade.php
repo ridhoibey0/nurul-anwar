@@ -6,7 +6,7 @@
             <div class="grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <div class="flex items-center gap-2.5 text-white">
-                        <img src="{{ asset('images/kiddies/logo-mark.svg') }}" alt="" class="h-8 w-8" width="32" height="32">
+                        <img src="{{ logo_url() }}" alt="" class="h-8 w-8" width="32" height="32">
                         <span class="font-display text-xl font-semibold">{{ config('sekolah.nama_pendek') }}</span>
                     </div>
 

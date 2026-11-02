@@ -18,7 +18,7 @@
         '@type' => 'EducationalOrganization',
         'name' => config('sekolah.nama'),
         'url' => url('/'),
-        'image' => asset('images/og.jpg'),
+        'image' => gambar_bagikan_url(),
         'description' => config('sekolah.tagline'),
         'telephone' => config('sekolah.telepon'),
         'address' => [

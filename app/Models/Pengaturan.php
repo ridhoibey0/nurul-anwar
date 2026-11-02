@@ -32,6 +32,11 @@ class Pengaturan extends Model
         'sekolah_tahun_berdiri' => 'sekolah.tahun_berdiri',
         'sekolah_akreditasi' => 'sekolah.akreditasi',
 
+        // Jalur berkas, diisi oleh unggahan dari panel admin. Baris yang
+        // bernilai null berarti "pakai berkas bawaan"; lihat App\Support\Merek.
+        'sekolah_logo' => 'sekolah.logo',
+        'sekolah_gambar_bagikan' => 'sekolah.gambar_bagikan',
+
         'sekolah_alamat' => 'sekolah.alamat',
         'sekolah_kota' => 'sekolah.kota',
         'sekolah_provinsi' => 'sekolah.provinsi',

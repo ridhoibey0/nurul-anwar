@@ -18,7 +18,7 @@
             class="flex items-center gap-2.5"
             :class="(turun || buka || {{ $transparan ? 'false' : 'true' }}) ? 'text-tinta' : 'text-white'"
         >
-            <img src="{{ asset('images/kiddies/logo-mark.svg') }}" alt="" class="h-8 w-8" width="32" height="32">
+            <img src="{{ logo_url() }}" alt="" class="h-8 w-8" width="32" height="32">
             <span class="font-display text-xl font-semibold tracking-tight sm:text-2xl">
                 {{ config('sekolah.nama_pendek') }}
             </span>

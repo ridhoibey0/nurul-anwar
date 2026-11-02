@@ -17,7 +17,7 @@
             '@type' => 'BlogPosting',
             'headline' => $artikel->judul,
             'description' => $artikel->ringkasan,
-            'image' => $artikel->gambar_url ?: asset('images/og.jpg'),
+            'image' => $artikel->gambar_url ?: gambar_bagikan_url(),
             'datePublished' => $artikel->terbit_pada?->toAtomString(),
             'dateModified' => $artikel->updated_at?->toAtomString(),
             'author' => [
