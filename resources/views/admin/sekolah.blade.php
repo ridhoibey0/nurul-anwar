@@ -1,5 +1,8 @@
 @extends('layouts.admin')
 
+{{-- Dipakai bagian "Logo & gambar" di bawah untuk menyebut ketiga keadaannya. --}}
+@use('App\Support\Merek')
+
 @section('title', 'Identitas Sekolah')
 
 @section('content')
@@ -206,8 +209,9 @@
         <section class="rounded-[1.75rem] bg-white p-7 bayang-lembut">
             <h2 class="font-display text-lg text-tinta">Logo &amp; gambar</h2>
             <p class="mt-1 text-sm text-tinta-lembut">
-                Gambar yang diunggah di sini langsung menggantikan gambar bawaan website,
-                tanpa perlu menyentuh berkas di server.
+                Diatur dari sini, tanpa perlu menyentuh berkas di server. Tiap gambar boleh
+                diunggah, dikembalikan ke gambar bawaan website, atau dikosongkan sama
+                sekali.
             </p>
 
             <div class="mt-5 grid gap-7 sm:grid-cols-2">
@@ -216,49 +220,65 @@
                 <div>
                     <p class="text-sm font-semibold text-tinta">Logo sekolah</p>
                     <p class="mt-0.5 text-xs text-tinta-lembut">
-                        Dipakai di navbar, footer, dan panel admin ini.
+                        Dipakai di navbar, footer, panel admin ini, dan sebagai ikon tab
+                        peramban.
                     </p>
 
-                    <div class="mt-3 flex items-start gap-4">
+                    @if (logo_url())
                         <img
                             src="{{ logo_url() }}"
                             alt="Logo yang sekarang dipakai"
-                            class="h-20 w-20 shrink-0 rounded-2xl bg-krem object-contain p-2"
+                            class="mt-3 h-20 w-20 rounded-2xl bg-krem object-contain p-2"
                             width="80"
                             height="80"
                         >
+                    @else
+                        <p class="mt-3 flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-hijau-200 px-2 text-center text-[10px] leading-tight text-tinta-lembut">
+                            Tanpa logo
+                        </p>
+                    @endif
 
-                        <div class="min-w-0 pt-1 text-xs text-tinta-lembut">
-                            @if ($logoBawaan)
-                                Masih memakai logo bawaan website.
-                            @else
-                                <label class="flex cursor-pointer items-start gap-2">
-                                    <input
-                                        type="checkbox"
-                                        name="hapus_logo"
-                                        value="1"
-                                        class="mt-px h-4 w-4 shrink-0 accent-koral-500"
-                                    >
-                                    Kembalikan ke logo bawaan saat menyimpan
-                                </label>
-                            @endif
-                        </div>
-                    </div>
+                    @php
+                        // Pilihan "yang sudah diunggah" cuma ditawarkan bila memang ada
+                        // berkas unggahannya; kalau tidak, pilihan itu tak ada isinya.
+                        $pilihanLogo = array_filter([
+                            Merek::UNGGAHAN => $logoPilihan === Merek::UNGGAHAN ? 'Logo yang sudah diunggah' : null,
+                            Merek::BAWAAN => 'Logo bawaan website',
+                            Merek::KOSONG => 'Tanpa logo, cukup nama sekolah',
+                        ]);
+                    @endphp
+
+                    <fieldset class="mt-4 grid gap-2">
+                        <legend class="mb-1 text-xs font-semibold text-tinta">Logo yang dipakai</legend>
+
+                        @foreach ($pilihanLogo as $nilai => $label)
+                            <label class="flex cursor-pointer items-start gap-2 text-xs text-tinta-lembut">
+                                <input
+                                    type="radio"
+                                    name="logo_pilihan"
+                                    value="{{ $nilai }}" @checked(old('logo_pilihan', $logoPilihan) === $nilai)
+                                    class="mt-px h-3.5 w-3.5 shrink-0 accent-koral-500"
+                                >
+                                {{ $label }}
+                            </label>
+                        @endforeach
+                    </fieldset>
 
                     <div class="mt-4">
                         <x-form.berkas
                             nama="logo"
-                            :label="$logoBawaan ? 'Unggah logo' : 'Ganti logo'"
+                            :label="$logoPilihan === Merek::UNGGAHAN ? 'Ganti logo' : 'Unggah logo'"
                             terima=".png,.jpg,.jpeg,.webp"
                             keterangan="PNG, JPG, atau WEBP · maksimal 2 MB"
                         />
                     </div>
 
                     <p class="mt-3 text-xs text-tinta-lembut">
-                        Paling pas logo berbentuk persegi atau bundar, PNG dengan latar
-                        transparan. Logo yang memanjang tetap diterima, hanya tampil lebih
-                        kecil karena dipasang di dalam kotak persegi. Berkas SVG belum bisa
-                        diterima karena alasan keamanan.
+                        Memilih berkas di atas otomatis memakai logo itu, apa pun pilihan
+                        yang tercentang. Paling pas logo berbentuk persegi atau bundar, PNG
+                        dengan latar transparan; logo yang memanjang tetap diterima, hanya
+                        tampil lebih kecil karena dipasang di dalam kotak persegi. Berkas
+                        SVG belum bisa diterima karena alasan keamanan.
                     </p>
                 </div>
 
@@ -270,37 +290,56 @@
                         dibagikan ke media sosial.
                     </p>
 
-                    <img
-                        src="{{ gambar_bagikan_url() }}"
-                        alt="Gambar bagikan yang sekarang dipakai"
-                        class="mt-3 aspect-[1200/630] w-full rounded-2xl bg-krem object-cover"
-                    >
+                    @if (gambar_bagikan_url())
+                        <img
+                            src="{{ gambar_bagikan_url() }}"
+                            alt="Gambar bagikan yang sekarang dipakai"
+                            class="mt-3 aspect-[1200/630] w-full rounded-2xl bg-krem object-cover"
+                        >
+                    @else
+                        <p class="mt-3 flex aspect-[1200/630] w-full items-center justify-center rounded-2xl border-2 border-dashed border-hijau-200 text-center text-xs text-tinta-lembut">
+                            Tanpa gambar bagikan
+                        </p>
+                    @endif
 
-                    @unless ($bagikanBawaan)
-                        <label class="mt-3 flex cursor-pointer items-start gap-2 text-xs text-tinta-lembut">
-                            <input
-                                type="checkbox"
-                                name="hapus_gambar_bagikan"
-                                value="1"
-                                class="mt-px h-4 w-4 shrink-0 accent-koral-500"
-                            >
-                            Kembalikan ke gambar bawaan saat menyimpan
-                        </label>
-                    @endunless
+                    @php
+                        $pilihanBagikan = array_filter([
+                            Merek::UNGGAHAN => $bagikanPilihan === Merek::UNGGAHAN ? 'Gambar yang sudah diunggah' : null,
+                            Merek::BAWAAN => 'Gambar bawaan website',
+                            Merek::KOSONG => 'Tanpa gambar, pratinjau tautan tampil polos',
+                        ]);
+                    @endphp
+
+                    <fieldset class="mt-4 grid gap-2">
+                        <legend class="mb-1 text-xs font-semibold text-tinta">Gambar yang dipakai</legend>
+
+                        @foreach ($pilihanBagikan as $nilai => $label)
+                            <label class="flex cursor-pointer items-start gap-2 text-xs text-tinta-lembut">
+                                <input
+                                    type="radio"
+                                    name="gambar_bagikan_pilihan"
+                                    value="{{ $nilai }}" @checked(old('gambar_bagikan_pilihan', $bagikanPilihan) === $nilai)
+                                    class="mt-px h-3.5 w-3.5 shrink-0 accent-koral-500"
+                                >
+                                {{ $label }}
+                            </label>
+                        @endforeach
+                    </fieldset>
 
                     <div class="mt-4">
                         <x-form.berkas
                             nama="gambar_bagikan"
-                            :label="$bagikanBawaan ? 'Unggah gambar' : 'Ganti gambar'"
+                            :label="$bagikanPilihan === Merek::UNGGAHAN ? 'Ganti gambar' : 'Unggah gambar'"
                             terima=".png,.jpg,.jpeg,.webp"
                             keterangan="PNG, JPG, atau WEBP · maksimal 4 MB"
                         />
                     </div>
 
                     <p class="mt-3 text-xs text-tinta-lembut">
-                        Ukuran paling pas 1200 &times; 630 piksel. Pilih foto yang ramai dan
-                        jelas; inilah gambar pertama yang dilihat orang tua sebelum membuka
-                        tautannya.
+                        Ukuran paling pas 1200 &times; 630 piksel. Inilah gambar pertama yang
+                        dilihat orang tua sebelum membuka tautannya, jadi pilih foto yang
+                        ramai dan jelas &mdash; atau kosongkan bila tidak ingin ada foto anak
+                        yang ikut tampil tiap kali tautan dibagikan.
                     </p>
                 </div>
 

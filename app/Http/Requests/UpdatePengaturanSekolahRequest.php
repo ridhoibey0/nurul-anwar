@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Merek;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePengaturanSekolahRequest extends FormRequest
 {
@@ -54,8 +56,10 @@ class UpdatePengaturanSekolahRequest extends FormRequest
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
             'gambar_bagikan' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
 
-            'hapus_logo' => ['nullable', 'boolean'],
-            'hapus_gambar_bagikan' => ['nullable', 'boolean'],
+            // Keadaan yang dipilih panitia: pakai berkas bawaan, pakai yang
+            // sudah diunggah, atau tanpa gambar sama sekali.
+            'logo_pilihan' => ['nullable', Rule::in(Merek::PILIHAN)],
+            'gambar_bagikan_pilihan' => ['nullable', Rule::in(Merek::PILIHAN)],
         ];
     }
 

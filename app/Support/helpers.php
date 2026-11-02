@@ -17,8 +17,11 @@ if (! function_exists('logo_url')) {
      * URL logo sekolah: logo yang diunggah panitia bila ada, kalau belum ada
      * jatuh ke logo bawaan. Hasilnya selalu gambar persegi, jadi aman dipasang
      * dengan ukuran tetap.
+     *
+     * Null bila panitia memilih "tanpa logo" dari panel admin -- maka tempat
+     * yang memasangnya harus menampilkan nama sekolah saja, bukan gambar rusak.
      */
-    function logo_url(): string
+    function logo_url(): ?string
     {
         return \App\Support\Merek::url('logo');
     }
@@ -27,9 +30,10 @@ if (! function_exists('logo_url')) {
 if (! function_exists('gambar_bagikan_url')) {
     /**
      * URL gambar yang tampil saat tautan website dikirim lewat WhatsApp atau
-     * dibagikan ke media sosial (og:image).
+     * dibagikan ke media sosial (og:image). Null bila dikosongkan dari panel
+     * admin, dan tag og:image-nya tidak ditulis sama sekali.
      */
-    function gambar_bagikan_url(): string
+    function gambar_bagikan_url(): ?string
     {
         return \App\Support\Merek::url('gambar_bagikan');
     }

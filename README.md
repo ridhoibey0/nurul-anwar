@@ -110,8 +110,25 @@ telepon, **nomor WhatsApp**, email, koordinat peta, tautan media sosial,
   domain yang sama dengan panel admin — simpan dulu sebagai PNG.
 - **Gambar bagikan** adalah yang tampil saat tautan website dikirim lewat
   WhatsApp (`og:image`). Ukuran paling pas 1200 × 630.
-- Keduanya punya pilihan **kembalikan ke bawaan**, yang memulihkan gambar asli
-  yang ikut dalam repositori tanpa perlu mengunggah apa pun.
+- Keduanya punya **tiga keadaan**, dipilih lewat tombol radio:
+
+  | Pilihan | Artinya |
+  | --- | --- |
+  | Yang sudah diunggah | Memakai berkas unggahan. Hanya muncul kalau memang ada. |
+  | Bawaan website | Memulihkan berkas asli yang ikut dalam repositori. |
+  | Tanpa logo / tanpa gambar | Tidak ada gambar sama sekali. |
+
+  Memilih berkas di isian unggah selalu menang atas pilihan radio. Tanpa logo,
+  navbar dan footer menampilkan nama sekolah saja dan ikon tab jatuh ke
+  `favicon.ico`. Tanpa gambar bagikan, tag `og:image` tidak ditulis sama sekali
+  — bukan ditulis kosong, karena sebagian aplikasi menampilkan kotak gambar
+  rusak untuk `og:image` yang isinya kosong. Berguna kalau sekolah tidak ingin
+  ada foto anak yang ikut tampil tiap kali tautan dibagikan.
+
+  Ketiga keadaan itu dibedakan lewat nilai yang tersimpan di tabel
+  `pengaturan`: `null` berarti belum pernah diatur (pakai bawaan), string
+  kosong berarti sengaja dikosongkan, dan jalur berkas berarti unggahan — pola
+  yang sama dengan isian teks di menu ini.
 - Isian yang **dikosongkan tetap kosong**, tidak kembali ke nilai `.env`.
   Mengosongkan akreditasi menghilangkan lencananya dari beranda; mengosongkan
   tautan media sosial menghilangkan ikonnya dari footer dan membuat akun itu
@@ -229,7 +246,7 @@ Hampir seluruh teks dan data sekolah tidak perlu menyentuh file Blade:
 | Yang ingin diganti | File |
 | --- | --- |
 | Nama sekolah, alamat, telepon, WhatsApp, media sosial, peta | **Panel admin > Identitas Sekolah** (nilai awal di `.env` bagian `SCHOOL_*`) |
-| Logo sekolah dan gambar pratinjau WhatsApp | **Panel admin > Identitas Sekolah** (bawaannya di `App\Support\Merek::BAWAAN`) |
+| Logo sekolah dan gambar pratinjau WhatsApp | **Panel admin > Identitas Sekolah** (bawaannya di `App\Support\Merek::BERKAS_BAWAAN`) |
 | Status buka/tutup PPDB, tahun ajaran, jadwal | **Panel admin > Pengaturan PPDB** (nilai awal di `.env` bagian `PPDB_*`) |
 | Jenjang, kuota, syarat berkas, alur pendaftaran | `config/ppdb.php` |
 | Jenjang, keunggulan, keseharian, daftar guru, testimoni | `config/konten.php` |

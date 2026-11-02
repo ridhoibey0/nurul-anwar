@@ -17,14 +17,17 @@
                 loading="lazy"
             >
         @else
-            {{-- Belum ada gambar sampul: blok warna dengan logo sekolah. --}}
+            {{-- Belum ada gambar sampul: blok warna dengan logo sekolah, atau
+                 blok warna saja bila logonya dikosongkan. --}}
             <span class="flex h-full w-full items-center justify-center">
-                <img
-                    src="{{ logo_url() }}"
-                    alt=""
-                    class="h-12 w-12 opacity-40"
-                    loading="lazy"
-                >
+                @if (logo_url())
+                    <img
+                        src="{{ logo_url() }}"
+                        alt=""
+                        class="h-12 w-12 opacity-40"
+                        loading="lazy"
+                    >
+                @endif
             </span>
         @endif
     </a>

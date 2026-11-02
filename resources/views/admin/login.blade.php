@@ -18,7 +18,9 @@
 <body class="flex min-h-full items-center justify-center bg-hijau-900 px-5 py-12 font-sans">
     <div class="w-full max-w-md">
         <a href="{{ route('home') }}" class="flex items-center justify-center gap-2.5 text-white">
-            <img src="{{ logo_url() }}" alt="" class="h-9 w-9">
+            @if (logo_url())
+                <img src="{{ logo_url() }}" alt="" class="h-9 w-9">
+            @endif
             <span class="font-display text-xl">{{ config('sekolah.nama_pendek') }}</span>
         </a>
 

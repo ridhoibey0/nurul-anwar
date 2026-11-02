@@ -24,11 +24,21 @@
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:url" content="{{ canonical_url() }}">
     {{-- Tautan yang dibagikan orang tua lewat WhatsApp tampil dengan gambar
-         ini bila halamannya tidak punya gambar sendiri. --}}
-    <meta property="og:image" content="@yield('og_image', gambar_bagikan_url())">
-    <meta property="og:image:alt" content="@yield('og_image_alt', 'Siswa dan guru '.config('sekolah.nama'))">
+         ini bila halamannya tidak punya gambar sendiri.
 
-    <meta name="twitter:card" content="summary_large_image">
+         Bila gambar bagikan dikosongkan dari panel admin, tag-nya tidak
+         ditulis sama sekali: og:image yang isinya kosong membuat sebagian
+         aplikasi menampilkan kotak gambar rusak, bukan pratinjau tanpa
+         gambar. --}}
+    @php($ogGambar = \Illuminate\Support\Facades\View::getSection('og_image') ?: gambar_bagikan_url())
+
+    @if ($ogGambar)
+        <meta property="og:image" content="{{ $ogGambar }}">
+        <meta property="og:image:alt" content="@yield('og_image_alt', 'Siswa dan guru '.config('sekolah.nama'))">
+        <meta name="twitter:card" content="summary_large_image">
+    @else
+        <meta name="twitter:card" content="summary">
+    @endif
 
     @yield('kepala')
 

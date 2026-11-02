@@ -63,8 +63,8 @@ class PengaturanController extends Controller
             // Selama kunci ini belum pernah disimpan, yang tampil di isian
             // adalah nilai bawaan dari .env.
             'pernahDisimpan' => Pengaturan::ambil('sekolah_nama') !== null,
-            'logoBawaan' => Merek::bawaan('logo'),
-            'bagikanBawaan' => Merek::bawaan('gambar_bagikan'),
+            'logoPilihan' => Merek::pilihan('logo'),
+            'bagikanPilihan' => Merek::pilihan('gambar_bagikan'),
         ]);
     }
 
@@ -114,14 +114,15 @@ class PengaturanController extends Controller
     }
 
     /**
-     * Proses unggahan logo dan gambar bagikan, lalu kembalikan jalur barunya.
+     * Proses unggahan logo dan gambar bagikan, lalu kembalikan nilai barunya.
      *
-     * Hanya jenis yang benar-benar disentuh panitia yang muncul di hasilnya,
-     * supaya menyimpan formulir tanpa memilih berkas tidak menghapus gambar
-     * yang sudah ada.
+     * Hanya jenis yang benar-benar diubah panitia yang muncul di hasilnya,
+     * supaya menyimpan formulir tanpa menyentuh gambar tidak mengubah gambar
+     * yang sudah dipasang.
      *
-     * Berbeda dari isian teks, keduanya bernilai null saat dikembalikan ke
-     * bawaan: null berarti "pakai berkas bawaan", bukan "tidak ada gambar".
+     * Nilai yang dikembalikan mengikuti tiga keadaan di App\Support\Merek:
+     * null untuk berkas bawaan, string kosong untuk tanpa gambar, dan jalur
+     * berkas untuk hasil unggahan.
      *
      * @return array<string, string|null>
      */
@@ -132,6 +133,8 @@ class PengaturanController extends Controller
         foreach (self::MEREK as $isian => $kunci) {
             $berkas = $request->file($isian);
 
+            // Memilih berkas selalu menang atas pilihan keadaan: panitia yang
+            // mengunggah gambar jelas-jelas ingin gambar itu yang dipakai.
             if ($berkas instanceof UploadedFile) {
                 $baru = $this->unggahMerek($isian, $berkas);
 
@@ -146,8 +149,14 @@ class PengaturanController extends Controller
                 continue;
             }
 
-            if ($request->boolean('hapus_'.$isian)) {
+            // UNGGAHAN tanpa berkas baru berarti "pertahankan yang sekarang",
+            // jadi kuncinya sengaja tidak dimasukkan ke hasil.
+            $pilihan = $request->input($isian.'_pilihan');
+
+            if ($pilihan === Merek::BAWAAN) {
                 $hasil[$kunci] = null;
+            } elseif ($pilihan === Merek::KOSONG) {
+                $hasil[$kunci] = '';
             }
         }
 

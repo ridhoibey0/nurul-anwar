@@ -24,7 +24,9 @@
             :class="menu ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
         >
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2.5 text-white">
-                <img src="{{ logo_url() }}" alt="" class="h-8 w-8">
+                @if (logo_url())
+                    <img src="{{ logo_url() }}" alt="" class="h-8 w-8">
+                @endif
                 <span class="font-display text-lg">Panel Admin</span>
             </a>
 
