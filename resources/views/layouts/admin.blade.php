@@ -15,6 +15,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- Halaman yang butuh aset tambahan menitipkannya di sini, mis.
+         editor artikel. Tanpa ini, berkasnya ikut termuat di seluruh
+         halaman yang tidak memakainya. --}}
+    @stack('kepala')
 </head>
 <body class="min-h-full bg-krem font-sans" x-data="{ menu: false }">
     <div class="flex min-h-screen">

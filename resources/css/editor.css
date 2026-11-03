@@ -1,0 +1,73 @@
+/*
+| Penyesuaian tampilan editor artikel.
+|
+| Dimuat editor.js SETELAH trix.css, bukan dari app.css: kalau ditaruh di
+| app.css, CSS bawaan Trix yang menyusul akan menimpanya karena
+| kekhususan selektornya sama.
+|
+| Variabel --color-* berasal dari blok @theme di app.css. Nilainya ada di
+| :root begitu app.css termuat, jadi tetap terbaca dari berkas ini.
+*/
+
+trix-toolbar .trix_button_row {
+    gap: 0.25rem;
+}
+
+trix-toolbar .trix_button_group {
+    border-color: var(--color-hijau-100);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+trix-toolbar .trix_button {
+    border-color: var(--color-hijau-100);
+}
+
+trix-toolbar .trix_button:not(:disabled):hover {
+    background: var(--color-hijau-100);
+}
+
+/* Tombol lampiran dan "kode" tidak dipakai di artikel sekolah. */
+trix-toolbar .trix_button--icon-attach,
+trix-toolbar .trix_button--icon-code {
+    display: none;
+}
+
+.trix-isi {
+    min-height: 22rem;
+    line-height: 1.7;
+}
+
+.trix-isi:focus {
+    outline: none;
+    border-color: var(--color-hijau-400);
+}
+
+/* Trix memakai h1 untuk subjudul; di sini disamakan dengan h2 halaman
+   artikel, karena saat disimpan memang diubah jadi h2. */
+.trix-isi h1 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1.3;
+    color: var(--color-tinta);
+    margin: 1.25rem 0 0.5rem;
+}
+
+.trix-isi ul,
+.trix-isi ol {
+    padding-left: 1.5rem;
+}
+
+.trix-isi ul { list-style: disc; }
+.trix-isi ol { list-style: decimal; }
+
+.trix-isi blockquote {
+    border-left: 3px solid var(--color-hijau-200);
+    padding-left: 1rem;
+    color: var(--color-tinta-lembut);
+}
+
+.trix-isi a {
+    color: var(--color-hijau-700);
+    text-decoration: underline;
+}

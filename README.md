@@ -194,16 +194,58 @@ tidak bisa diperkecil dan unggahan akan ditolak dengan pesan yang jelas.
 
 ## Menulis blog
 
-Menu **Blog** di panel panitia untuk menulis, menyunting, dan menghapus artikel.
+Menu **Blog** di panel admin. Isi artikel ditulis lewat editor dengan tombol
+format (tebal, miring, subjudul, daftar, tautan) &mdash; panitia tidak perlu
+tahu Markdown maupun HTML.
 
-- **Status** — *Draf* tersimpan tanpa tampil di website. *Terbit* langsung tampil.
-  Mengisi tanggal terbit di masa depan membuat artikel **terjadwal**: tersimpan,
-  tapi baru muncul sendiri setelah tanggalnya tiba. Draf dan artikel terjadwal
-  tidak bisa dibuka lewat URL, jadi tautannya aman dibagikan ke sesama panitia.
-- **Isi artikel** ditulis dengan format sederhana: baris kosong memisahkan
-  paragraf, `## ` untuk subjudul, `**tebal**`, `- ` untuk daftar, dan
-  `[teks](url)` untuk tautan. HTML mentah dibuang otomatis, jadi tidak ada
-  jalan masuk untuk skrip berbahaya.
+Editornya [Trix](https://trix-editor.org): MIT, tanpa kunci API, dan tidak
+butuh layanan luar. Beberapa hal yang disengaja:
+
+- **Dimuat hanya di halaman tulis artikel.** Trix sekitar 200 KB; kalau ikut
+  di `app.js`, bobot itu terbawa ke seluruh halaman publik yang bahkan tidak
+  punya editor &mdash; dan kecepatan muat ikut dinilai mesin pencari. Berkasnya
+  dipisah di `resources/js/editor.js` dan dititipkan lewat `@push('kepala')`.
+- **Menyisipkan gambar di tengah tulisan dimatikan.** Tanpa endpoint unggahan,
+  Trix menanam gambar sebagai data URI di dalam HTML, dan satu artikel bisa
+  jadi berukuran megabyte di dalam satu kolom database. Gambar artikel tetap
+  lewat isian **Gambar sampul** yang terpisah.
+- **HTML-nya disaring saat disimpan**, bukan saat ditampilkan &mdash; lihat di
+  bawah.
+
+### Kenapa HTML-nya harus disaring
+
+Isi artikel dicetak ke halaman dengan `{!! !!}`, jadi HTML apa pun yang
+tersimpan akan dijalankan peramban pengunjung. Walau yang menulis sudah login,
+HTML dari luar tidak boleh dipercaya: siapa pun yang bisa masuk panel admin
+&mdash; termasuk lewat sandi yang bocor &mdash; dapat menanam `<script>` yang
+berjalan di setiap pengunjung website sekolah.
+
+[`App\Support\HtmlAman`](app/Support/HtmlAman.php) menyaringnya dengan daftar
+izin: hanya tag dan atribut yang disebut yang lolos, sisanya dibuang. Beberapa
+keputusannya:
+
+| Yang terjadi | Kenapa |
+| --- | --- |
+| `<script>`, `<style>`, `<iframe>` dibuang berikut isinya | Isinya bukan tulisan artikel |
+| Tag tak dikenal dilepas, tulisannya tetap | Tulisan panitia tidak boleh hilang karena satu tag asing |
+| `href` selain http/https/mailto/tel dibuang | Menutup `javascript:` dan `data:` |
+| Tautan keluar diberi `target="_blank"` + `rel="noopener noreferrer"` | Halaman tujuan tidak bisa menyetir tab asalnya |
+| `<div>` jadi `<p>`, `<h1>` jadi `<h2>` | Trix memakai keduanya; judul artikel sudah `<h1>`, dan dua `<h1>` sehalaman membingungkan mesin pencari |
+
+Penyaringan dijalankan di mutator `Artikel::setIsiAttribute()`, jadi yang
+tersimpan di database memang sudah bersih. Saat ditampilkan, isinya disaring
+sekali lagi &mdash; baris lama di database belum tentu pernah melewati
+penyaring ini.
+
+### Artikel lama yang masih Markdown
+
+Sebelum editor ini dipasang, isi artikel ditulis dalam Markdown. Keduanya
+dibedakan dari ada tidaknya tag HTML: tulisan lama tetap tampil benar tanpa
+perlu diubah satu per satu, dan ikut beralih jadi HTML begitu artikelnya
+disunting dan disimpan ulang.
+
+### Hal lain soal artikel
+
 - **Gambar sampul** maksimal 2 MB (JPG/PNG/WEBP), paling pas 1200 × 750 piksel.
   Tanpa gambar, kartu artikel memakai blok warna berlogo sekolah.
 - **Alamat artikel** (slug) dibuat dari judul. Setelah artikel terbit, slug-nya
@@ -427,6 +469,7 @@ app/Models/Artikel.php        artikel blog + slug & status terbit
 app/Models/Galeri.php         foto kegiatan di halaman depan
 app/Support/Gambar.php        pengecil foto unggahan (pakai GD)
 app/Support/Merek.php         logo & gambar bagikan beserta nilai bawaannya
+app/Support/HtmlAman.php      penyaring HTML dari editor artikel
 config/sekolah.php        identitas sekolah
 config/ppdb.php           nilai bawaan PPDB
 docs/erd/                 ERD untuk laporan (drawio + png)

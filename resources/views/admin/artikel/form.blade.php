@@ -2,6 +2,10 @@
 
 @section('title', $artikel->exists ? 'Ubah Artikel' : 'Tulis Artikel')
 
+@push('kepala')
+    @vite('resources/js/editor.js')
+@endpush
+
 @section('content')
     @php
         $aksi = $artikel->exists
@@ -59,24 +63,21 @@
             </section>
 
             <section class="rounded-[1.75rem] bg-white p-7 bayang-lembut">
-                <x-form.area
+                <x-form.wysiwyg
                     nama="isi"
                     label="Isi artikel"
-                    :baris="18"
-                    bantuan="Tulis biasa saja. Baris kosong memisahkan paragraf."
+                    bantuan="Pakai tombol di atas kotak untuk menebalkan, membuat subjudul, atau menambah daftar."
                     wajib
-                    :nilai="$artikel->isi"
+                    :nilai="$artikel->isi_html"
                 />
 
                 <div class="mt-4 rounded-2xl bg-krem p-5 text-xs leading-relaxed text-tinta-lembut">
-                    <p class="font-semibold text-tinta">Format sederhana yang bisa dipakai</p>
-                    <ul class="mt-2 grid gap-1">
-                        <li><code class="rounded bg-white px-1.5 py-0.5">## Judul bagian</code> — subjudul besar</li>
-                        <li><code class="rounded bg-white px-1.5 py-0.5">**tebal**</code> — huruf tebal</li>
-                        <li><code class="rounded bg-white px-1.5 py-0.5">- poin</code> — daftar bernomor titik</li>
-                        <li><code class="rounded bg-white px-1.5 py-0.5">[teks](https://...)</code> — tautan</li>
+                    <p class="font-semibold text-tinta">Yang perlu diketahui</p>
+                    <ul class="mt-2 grid list-disc gap-1 pl-4">
+                        <li>Menempel tulisan dari Word atau WhatsApp boleh &mdash; format yang tidak dikenal dibuang otomatis.</li>
+                        <li>Gambar tidak bisa disisipkan di tengah tulisan. Pakai isian <strong>Gambar sampul</strong> di samping.</li>
+                        <li>Tautan keluar otomatis dibuka di tab baru.</li>
                     </ul>
-                    <p class="mt-3">Kode HTML tidak dipakai dan akan dibuang otomatis.</p>
                 </div>
             </section>
         </div>

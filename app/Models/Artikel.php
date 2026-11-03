@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\HtmlAman;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -99,20 +100,55 @@ class Artikel extends Model
     }
 
     /**
-     * Isi artikel ditulis dengan Markdown sederhana. HTML mentah dibuang
-     * supaya panitia tidak bisa menyuntikkan skrip, sengaja maupun tidak.
+     * Isi artikel disaring saat disimpan, bukan saat ditampilkan.
+     *
+     * Editor di panel admin mengirim HTML, dan HTML dari luar tidak boleh
+     * dipercaya walau pengirimnya sudah login: siapa pun yang bisa masuk
+     * panel dapat menanam <script> yang berjalan di setiap pengunjung.
+     *
+     * Disaring sekali di sini supaya yang tersimpan di database memang sudah
+     * bersih, bukan dibersihkan ulang tiap halaman dibuka.
+     */
+    public function setIsiAttribute(?string $nilai): void
+    {
+        $this->attributes['isi'] = HtmlAman::saring($nilai);
+    }
+
+    /**
+     * Isi siap cetak ke halaman.
+     *
+     * Artikel yang ditulis sebelum editor WYSIWYG dipasang masih berupa
+     * Markdown. Keduanya dibedakan dari ada tidaknya tag HTML, jadi tulisan
+     * lama tetap tampil benar tanpa perlu diubah satu per satu.
      */
     public function getIsiHtmlAttribute(): string
     {
-        return Str::markdown($this->isi ?? '', [
-            'html_input' => 'strip',
-            'allow_unsafe_links' => false,
-        ]);
+        $isi = (string) $this->isi;
+
+        if (trim($isi) === '') {
+            return '';
+        }
+
+        if (! static::berupaHtml($isi)) {
+            return Str::markdown($isi, [
+                'html_input' => 'strip',
+                'allow_unsafe_links' => false,
+            ]);
+        }
+
+        // Disaring lagi walau sudah disaring saat menyimpan: baris lama di
+        // database belum tentu pernah melewati penyaring ini.
+        return HtmlAman::saring($isi);
+    }
+
+    private static function berupaHtml(string $isi): bool
+    {
+        return (bool) preg_match('/<(p|div|h[1-6]|ul|ol|li|strong|em|br|blockquote|pre|a)[^>]*>/i', $isi);
     }
 
     public function getWaktuBacaAttribute(): int
     {
-        $kata = str_word_count(strip_tags((string) $this->isi));
+        $kata = str_word_count(HtmlAman::teks($this->isi));
 
         return max(1, (int) ceil($kata / 200));
     }
