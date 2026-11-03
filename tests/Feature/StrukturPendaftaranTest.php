@@ -11,6 +11,7 @@ use App\Models\StatusPendaftaran;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -86,6 +87,27 @@ class StrukturPendaftaranTest extends TestCase
 
         $this->assertNotNull(Jenjang::dariKode('ra-a'));
         $this->assertNotNull(StatusPendaftaran::dariKode('baru'));
+    }
+
+    public function test_kolom_lama_sudah_tidak_ada_lagi(): void
+    {
+        // Migrasi pemindah data berhenti lebih awal di pemasangan baru; kalau
+        // penjagaannya salah dan kolom lamanya malah ikut terbuat, pengujian
+        // ini yang menangkapnya.
+        foreach ([
+            'jenjang', 'status', 'alamat', 'kelurahan', 'kota',
+            'nama_ayah', 'nik_ayah', 'nama_ibu', 'nama_wali',
+            'berkas_kk', 'berkas_akta', 'berkas_foto',
+        ] as $kolom) {
+            $this->assertFalse(
+                Schema::hasColumn('pendaftaran_siswa', $kolom),
+                "Kolom lama {$kolom} masih ada di pendaftaran_siswa.",
+            );
+        }
+
+        foreach (['jenjang_id', 'status_id', 'alamat_id'] as $kolom) {
+            $this->assertTrue(Schema::hasColumn('pendaftaran_siswa', $kolom));
+        }
     }
 
     public function test_jenjang_dan_status_urut_sesuai_kolom_urutan(): void

@@ -480,6 +480,79 @@ resources/views/artikel/      daftar & detail blog publik
 resources/views/admin/    panel panitia
 ```
 
+## Memperbarui server yang sudah jalan
+
+```bash
+cd /var/www/nurul-anwar
+
+# 1. Cadangkan database LEBIH DULU. Ini jaring pengaman satu-satunya.
+mysqldump -u USER -p NAMADB > ~/cadangan-$(date +%F-%H%M).sql
+
+# 2. Ambil perubahan
+git pull
+
+# 3. Paket PHP dan JS
+composer install --no-dev --optimize-autoloader
+npm install
+
+# 4. Migrasi. Aman dijalankan di database yang sudah berisi data.
+php artisan migrate --force
+
+# 5. Bangun ulang aset
+npm run build
+
+# 6. Izin tulis folder unggahan
+mkdir -p storage/fonts
+sudo chown -R www-data:www-data storage bootstrap/cache public/images/merek
+
+# 7. Bersihkan cache
+php artisan route:clear && php artisan view:clear && php artisan config:clear
+php artisan route:cache && php artisan view:cache
+sudo systemctl reload php8.4-fpm
+```
+
+**Jangan pakai `migrate:fresh`.** Perintah itu mengosongkan seluruh database,
+termasuk identitas sekolah, daftar foto galeri, artikel, dan akun panitia.
+
+**Jangan pakai `config:cache`.** Identitas sekolah dan pengaturan PPDB dibaca
+dari database saat boot; `config:cache` membekukan nilainya ke dalam berkas
+cache dan perubahan dari panel admin jadi tidak berlaku.
+
+### Soal migrasi pemindah data
+
+Normalisasi `pendaftaran_siswa` menulis ulang migrasi aslinya. Di pemasangan
+baru itu tidak masalah, tapi di server yang sudah jalan migrasi tersebut sudah
+pernah dijalankan dan Laravel tidak akan mengulanginya &mdash; tabelnya akan
+tertinggal di bentuk lama sementara kodenya sudah memakai bentuk baru.
+
+`2026_01_02_000100_pindahkan_pendaftaran_ke_struktur_baru.php` menjembatani
+keduanya: memindahkan isi kolom lama ke `alamat`, `pendaftaran_orang_tua`, dan
+`pendaftaran_berkas`, lalu membuang kolom yang sudah tidak dipakai. Tidak ada
+satu baris pendaftaran pun yang hilang.
+
+Migrasi itu memeriksa dirinya sendiri sebelum bekerja:
+
+- Di pemasangan baru ia berhenti seketika, karena kolom lamanya memang tidak
+  pernah ada.
+- Bila ada pendaftaran memakai kode jenjang atau status yang tidak dikenal, ia
+  berhenti **sebelum** menyentuh apa pun dan menyebutkan kode mana yang
+  bermasalah &mdash; daripada berhenti di tengah jalan dengan tabel yang sudah
+  separuh berubah.
+
+`down()`-nya sengaja dikosongkan: membalikkan pemindahan berarti menebak ulang
+25 kolom dari tiga tabel, dan tebakan yang salah merusak data pendaftar. Untuk
+kembali ke bentuk lama, pulihkan dari cadangan di langkah 1.
+
+### Bila perlu dibatalkan
+
+```bash
+mysql -u USER -p NAMADB < ~/cadangan-YYYY-MM-DD-HHMM.sql
+git reset --hard <commit-sebelumnya>
+composer install --no-dev --optimize-autoloader
+npm install && npm run build
+php artisan route:clear && php artisan view:clear && php artisan config:clear
+```
+
 ## Deploy ke hosting cPanel
 
 1. Unggah seluruh isi folder `laravel/` ke luar `public_html`, misal ke `~/app`.
