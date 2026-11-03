@@ -13,7 +13,7 @@ Jalankan dari folder ini:
     python buat-erd.py
 
 Skema di bawah mengikuti database/migrations/. Kalau ada migrasi baru,
-perbarui daftar KOLOM lalu jalankan ulang.
+perbarui daftar TABEL lalu jalankan ulang.
 
 Tabel bawaan framework (cache, cache_locks, jobs, job_batches, failed_jobs,
 sessions, password_reset_tokens) sengaja tidak digambar: itu infrastruktur
@@ -28,50 +28,49 @@ from PIL import Image, ImageDraw, ImageFont
 # ---------------------------------------------------------------------------
 # Skema
 # ---------------------------------------------------------------------------
-# Tiap kolom: (penanda, nama, tipe)  -- penanda: 'PK', 'FK1', atau ''
+# Tiap kolom: (penanda, nama, tipe)  -- penanda: 'PK', 'FKn', atau ''
 
 TABEL = {
-    "artikel": {
-        "x": 40, "y": 40, "lebar": 300,
-        "kolom": [
-            ("PK",  "id",              "bigint(20) NOT NULL"),
-            ("",    "judul",           "varchar(255) NOT NULL"),
-            ("",    "slug",            "varchar(191) NOT NULL"),
-            ("",    "kategori",        "varchar(80) NULL"),
-            ("",    "ringkasan",       "text NOT NULL"),
-            ("",    "isi",             "longtext NOT NULL"),
-            ("",    "gambar",          "varchar(255) NULL"),
-            ("",    "status",          "varchar(16) NOT NULL"),
-            ("",    "terbit_pada",     "timestamp NULL"),
-            ("FK1", "penulis_id",      "bigint(20) NULL"),
-            ("",    "created_at",      "timestamp NULL"),
-            ("",    "updated_at",      "timestamp NULL"),
-        ],
-    },
-    "galeri": {
-        "x": 40, "y": 400, "lebar": 300,
+    "jenjang": {
+        "x": 40, "y": 40, "lebar": 290,
         "kolom": [
             ("PK", "id",         "bigint(20) NOT NULL"),
-            ("",   "judul",      "varchar(160) NULL"),
-            ("",   "gambar",     "varchar(255) NOT NULL"),
+            ("",   "kode",       "varchar(16) NOT NULL"),
+            ("",   "nama",       "varchar(100) NOT NULL"),
+            ("",   "usia",       "varchar(40) NULL"),
+            ("",   "kuota",      "int(10) NOT NULL default 0"),
             ("",   "urutan",     "int(10) NOT NULL default 0"),
-            ("",   "tampil",     "tinyint(1) NOT NULL default 1"),
             ("",   "created_at", "timestamp NULL"),
             ("",   "updated_at", "timestamp NULL"),
         ],
     },
-    "pengaturan": {
-        "x": 40, "y": 680, "lebar": 300,
+    "status_pendaftaran": {
+        "x": 40, "y": 280, "lebar": 290,
         "kolom": [
             ("PK", "id",         "bigint(20) NOT NULL"),
-            ("",   "kunci",      "varchar(64) NOT NULL"),
-            ("",   "nilai",      "text NULL"),
+            ("",   "kode",       "varchar(24) NOT NULL"),
+            ("",   "label",      "varchar(60) NOT NULL"),
+            ("",   "warna",      "varchar(20) NOT NULL"),
+            ("",   "urutan",     "int(10) NOT NULL default 0"),
+            ("",   "created_at", "timestamp NULL"),
+            ("",   "updated_at", "timestamp NULL"),
+        ],
+    },
+    "alamat": {
+        "x": 40, "y": 500, "lebar": 290,
+        "kolom": [
+            ("PK", "id",         "bigint(20) NOT NULL"),
+            ("",   "jalan",      "text NOT NULL"),
+            ("",   "kelurahan",  "varchar(80) NULL"),
+            ("",   "kecamatan",  "varchar(80) NULL"),
+            ("",   "kota",       "varchar(80) NULL"),
+            ("",   "kode_pos",   "varchar(10) NULL"),
             ("",   "created_at", "timestamp NULL"),
             ("",   "updated_at", "timestamp NULL"),
         ],
     },
     "users": {
-        "x": 420, "y": 180, "lebar": 300,
+        "x": 40, "y": 760, "lebar": 290,
         "kolom": [
             ("PK", "id",                "bigint(20) NOT NULL"),
             ("",   "name",              "varchar(255) NOT NULL"),
@@ -84,65 +83,121 @@ TABEL = {
         ],
     },
     "pendaftaran_siswa": {
-        "x": 800, "y": 40, "lebar": 340,
+        "x": 430, "y": 40, "lebar": 330,
         "kolom": [
-            ("PK",  "id",                 "bigint(20) NOT NULL"),
-            ("",    "nomor_pendaftaran",  "varchar(32) NOT NULL"),
-            ("",    "tahun_ajaran",       "varchar(16) NOT NULL"),
-            ("",    "jenjang",            "varchar(16) NOT NULL"),
-            ("",    "nama_lengkap",       "varchar(255) NOT NULL"),
-            ("",    "nama_panggilan",     "varchar(60) NULL"),
-            ("",    "jenis_kelamin",      "char(1) NOT NULL"),
-            ("",    "tempat_lahir",       "varchar(80) NOT NULL"),
-            ("",    "tanggal_lahir",      "date NOT NULL"),
-            ("",    "nik",                "varchar(16) NULL"),
-            ("",    "anak_ke",            "tinyint(3) NULL"),
-            ("",    "jumlah_saudara",     "tinyint(3) NULL"),
-            ("",    "agama",              "varchar(32) NOT NULL default 'Islam'"),
-            ("",    "alamat",             "text NOT NULL"),
-            ("",    "kelurahan",          "varchar(80) NULL"),
-            ("",    "kecamatan",          "varchar(80) NULL"),
-            ("",    "kota",               "varchar(80) NULL"),
-            ("",    "kode_pos",           "varchar(10) NULL"),
-            ("",    "asal_sekolah",       "varchar(255) NULL"),
-            ("",    "riwayat_kesehatan",  "text NULL"),
-            ("",    "nama_ayah",          "varchar(255) NOT NULL"),
-            ("",    "nik_ayah",           "varchar(16) NULL"),
-            ("",    "pendidikan_ayah",    "varchar(32) NULL"),
-            ("",    "pekerjaan_ayah",     "varchar(80) NULL"),
-            ("",    "penghasilan_ayah",   "varchar(40) NULL"),
-            ("",    "telepon_ayah",       "varchar(24) NULL"),
-            ("",    "nama_ibu",           "varchar(255) NOT NULL"),
-            ("",    "nik_ibu",            "varchar(16) NULL"),
-            ("",    "pendidikan_ibu",     "varchar(32) NULL"),
-            ("",    "pekerjaan_ibu",      "varchar(80) NULL"),
-            ("",    "penghasilan_ibu",    "varchar(40) NULL"),
-            ("",    "telepon_ibu",        "varchar(24) NULL"),
-            ("",    "nama_wali",          "varchar(255) NULL"),
-            ("",    "hubungan_wali",      "varchar(40) NULL"),
-            ("",    "telepon_wali",       "varchar(24) NULL"),
-            ("",    "whatsapp",           "varchar(24) NOT NULL"),
-            ("",    "email",              "varchar(255) NULL"),
-            ("",    "berkas_kk",          "varchar(255) NULL"),
-            ("",    "berkas_akta",        "varchar(255) NULL"),
-            ("",    "berkas_foto",        "varchar(255) NULL"),
-            ("",    "catatan_orang_tua",  "text NULL"),
-            ("",    "status",             "varchar(24) NOT NULL default 'baru'"),
-            ("",    "catatan_admin",      "text NULL"),
-            ("",    "diverifikasi_pada",  "timestamp NULL"),
-            ("FK1", "diverifikasi_oleh",  "bigint(20) NULL"),
-            ("",    "ip_pendaftar",       "varchar(45) NULL"),
-            ("",    "created_at",         "timestamp NULL"),
-            ("",    "updated_at",         "timestamp NULL"),
+            ("PK",  "id",                "bigint(20) NOT NULL"),
+            ("",    "nomor_pendaftaran", "varchar(32) NOT NULL"),
+            ("",    "tahun_ajaran",      "varchar(16) NOT NULL"),
+            ("FK1", "jenjang_id",        "bigint(20) NOT NULL"),
+            ("",    "nama_lengkap",      "varchar(255) NOT NULL"),
+            ("",    "nama_panggilan",    "varchar(60) NULL"),
+            ("",    "jenis_kelamin",     "char(1) NOT NULL"),
+            ("",    "tempat_lahir",      "varchar(80) NOT NULL"),
+            ("",    "tanggal_lahir",     "date NOT NULL"),
+            ("",    "nik",               "varchar(16) NULL"),
+            ("",    "anak_ke",           "tinyint(3) NULL"),
+            ("",    "jumlah_saudara",    "tinyint(3) NULL"),
+            ("",    "agama",             "varchar(32) NOT NULL"),
+            ("FK2", "alamat_id",         "bigint(20) NULL"),
+            ("",    "asal_sekolah",      "varchar(255) NULL"),
+            ("",    "riwayat_kesehatan", "text NULL"),
+            ("",    "whatsapp",          "varchar(24) NOT NULL"),
+            ("",    "email",             "varchar(255) NULL"),
+            ("",    "catatan_orang_tua", "text NULL"),
+            ("FK3", "status_id",         "bigint(20) NOT NULL"),
+            ("",    "catatan_admin",     "text NULL"),
+            ("",    "diverifikasi_pada", "timestamp NULL"),
+            ("FK4", "diverifikasi_oleh", "bigint(20) NULL"),
+            ("",    "ip_pendaftar",      "varchar(45) NULL"),
+            ("",    "created_at",        "timestamp NULL"),
+            ("",    "updated_at",        "timestamp NULL"),
+        ],
+    },
+    "pendaftaran_orang_tua": {
+        "x": 880, "y": 40, "lebar": 310,
+        "kolom": [
+            ("PK",  "id",             "bigint(20) NOT NULL"),
+            ("FK1", "pendaftaran_id", "bigint(20) NOT NULL"),
+            ("",    "peran",          "varchar(16) NOT NULL"),
+            ("",    "nama",           "varchar(255) NOT NULL"),
+            ("",    "nik",            "varchar(16) NULL"),
+            ("",    "pendidikan",     "varchar(32) NULL"),
+            ("",    "pekerjaan",      "varchar(80) NULL"),
+            ("",    "penghasilan",    "varchar(40) NULL"),
+            ("",    "telepon",        "varchar(24) NULL"),
+            ("",    "hubungan",       "varchar(40) NULL"),
+            ("",    "created_at",     "timestamp NULL"),
+            ("",    "updated_at",     "timestamp NULL"),
+        ],
+    },
+    "pendaftaran_berkas": {
+        "x": 880, "y": 340, "lebar": 310,
+        "kolom": [
+            ("PK",  "id",             "bigint(20) NOT NULL"),
+            ("FK1", "pendaftaran_id", "bigint(20) NOT NULL"),
+            ("",    "jenis",          "varchar(16) NOT NULL"),
+            ("",    "path",           "varchar(255) NOT NULL"),
+            ("",    "created_at",     "timestamp NULL"),
+            ("",    "updated_at",     "timestamp NULL"),
+        ],
+    },
+    "galeri": {
+        "x": 880, "y": 540, "lebar": 310,
+        "kolom": [
+            ("PK", "id",         "bigint(20) NOT NULL"),
+            ("",   "judul",      "varchar(160) NULL"),
+            ("",   "gambar",     "varchar(255) NOT NULL"),
+            ("",   "urutan",     "int(10) NOT NULL default 0"),
+            ("",   "tampil",     "tinyint(1) NOT NULL default 1"),
+            ("",   "created_at", "timestamp NULL"),
+            ("",   "updated_at", "timestamp NULL"),
+        ],
+    },
+    "pengaturan": {
+        "x": 880, "y": 760, "lebar": 310,
+        "kolom": [
+            ("PK", "id",         "bigint(20) NOT NULL"),
+            ("",   "kunci",      "varchar(64) NOT NULL"),
+            ("",   "nilai",      "text NULL"),
+            ("",   "created_at", "timestamp NULL"),
+            ("",   "updated_at", "timestamp NULL"),
+        ],
+    },
+    "artikel": {
+        "x": 430, "y": 760, "lebar": 330,
+        "kolom": [
+            ("PK",  "id",          "bigint(20) NOT NULL"),
+            ("",    "judul",       "varchar(255) NOT NULL"),
+            ("",    "slug",        "varchar(191) NOT NULL"),
+            ("",    "kategori",    "varchar(80) NULL"),
+            ("",    "ringkasan",   "text NOT NULL"),
+            ("",    "isi",         "longtext NOT NULL"),
+            ("",    "gambar",      "varchar(255) NULL"),
+            ("",    "status",      "varchar(16) NOT NULL"),
+            ("",    "terbit_pada", "timestamp NULL"),
+            ("FK1", "penulis_id",  "bigint(20) NULL"),
+            ("",    "created_at",  "timestamp NULL"),
+            ("",    "updated_at",  "timestamp NULL"),
         ],
     },
 }
 
-# (tabel_anak, kolom_fk, tabel_induk, kolom_pk, sisi)
-# sisi: 'kanan' = anak di kiri induk, 'kiri' = anak di kanan induk
+# (tabel_anak, kolom_fk, tabel_induk, kolom_pk, sisi, wajib, lajur)
+#
+# sisi  : 'kanan' = tabel anak ada di kiri induknya
+#         'kiri'  = tabel anak ada di kanan induknya
+# wajib : True  = foreign key NOT NULL, ujung induk digambar "tepat satu"
+#         False = foreign key nullable, ujung induk digambar "nol atau satu"
+# lajur : posisi x ruas tegak garisnya, supaya beberapa garis yang berangkat
+#         ke arah sama tidak saling menimpa
 RELASI = [
-    ("artikel",           "penulis_id",        "users", "id", "kanan"),
-    ("pendaftaran_siswa", "diverifikasi_oleh", "users", "id", "kiri"),
+    ("pendaftaran_siswa",     "jenjang_id",        "jenjang",            "id", "kiri", True,  345),
+    ("pendaftaran_siswa",     "alamat_id",         "alamat",             "id", "kiri", False, 370),
+    ("pendaftaran_siswa",     "status_id",         "status_pendaftaran", "id", "kiri", True,  395),
+    ("pendaftaran_siswa",     "diverifikasi_oleh", "users",              "id", "kiri", False, 420),
+    ("artikel",               "penulis_id",        "users",              "id", "kiri", False, 395),
+    ("pendaftaran_orang_tua", "pendaftaran_id",    "pendaftaran_siswa",  "id", "kiri", True,  800),
+    ("pendaftaran_berkas",    "pendaftaran_id",    "pendaftaran_siswa",  "id", "kiri", True,  830),
 ]
 
 # ---------------------------------------------------------------------------
@@ -153,13 +208,15 @@ TINGGI_KEPALA = 26
 TINGGI_BARIS = 20
 LEBAR_PENANDA = 44
 
-WARNA_GARIS_TABEL = "#4A6FA5"
-WARNA_ISI_KEPALA = "#E8EEF7"
-WARNA_TEKS_KEPALA = "#1F3864"
-WARNA_TEKS_PK = "#1F3864"
+# Mengikuti gaya ERD cetak: kotak putih bergaris tipis, tanpa blok warna.
+# Yang membedakan baris cuma tebal dan garis bawah teksnya.
+WARNA_GARIS_TABEL = "#8C8C8C"
+WARNA_ISI_KEPALA = "#FFFFFF"
+WARNA_TEKS_KEPALA = "#1F1F1F"
+WARNA_TEKS_PK = "#1F4E79"
 WARNA_TEKS_KOLOM = "#2E74B5"
-WARNA_TEKS_PENANDA = "#1F3864"
-WARNA_RELASI = "#3D5A80"
+WARNA_TEKS_PENANDA = "#1F1F1F"
+WARNA_RELASI = "#595959"
 
 MARGIN = 40
 SKALA_PNG = 2
@@ -251,23 +308,36 @@ def tulis_drawio(tujuan: Path) -> None:
                 f'height="{TINGGI_BARIS}" as="geometry"/></mxCell>'
             )
 
-    for n, (anak, fk, induk, pk, sisi) in enumerate(RELASI):
+    for n, (anak, fk, induk, pk, sisi, wajib, lajur) in enumerate(RELASI):
         sumber = f"{anak}-r{cari_kolom(anak, fk)}"
         tujuan_id = f"{induk}-r{cari_kolom(induk, pk)}"
         keluar, masuk = (1, 0) if sisi == "kanan" else (0, 1)
 
         # startArrow di ujung anak, endArrow di ujung induk.
         # ERzeroToMany = lingkaran + kaki gagak (nol atau banyak)
-        # ERzeroToOne  = lingkaran + satu garis (nol atau satu), karena FK-nya nullable
+        # ERmandOne    = dua garis (tepat satu), untuk foreign key NOT NULL
+        # ERzeroToOne  = lingkaran + satu garis, untuk foreign key nullable
+        ujung_induk = "ERmandOne" if wajib else "ERzeroToOne"
+
         gaya = (
             "edgeStyle=entityRelationEdgeStyle;rounded=0;html=1;exitDx=0;exitDy=0;"
             f"exitX={keluar};exitY=0.5;entryX={masuk};entryY=0.5;entryDx=0;entryDy=0;"
-            "startArrow=ERzeroToMany;startFill=0;endArrow=ERzeroToOne;endFill=0;"
+            f"startArrow=ERzeroToMany;startFill=0;endArrow={ujung_induk};endFill=0;"
             f"strokeColor={WARNA_RELASI};strokeWidth=1;"
         )
+
+        # Titik belok ditulis eksplisit supaya ruas tegaknya berada di lajur
+        # yang sudah ditentukan, tidak saling menimpa dengan relasi lain.
+        y1 = baris_y(anak, cari_kolom(anak, fk))
+        y2 = baris_y(induk, cari_kolom(induk, pk))
+
         sel.append(
             f'<mxCell id="rel{n}" style="{gaya}" edge="1" parent="1" '
-            f'source="{sumber}" target="{tujuan_id}"><mxGeometry relative="1" as="geometry"/></mxCell>'
+            f'source="{sumber}" target="{tujuan_id}">'
+            f'<mxGeometry relative="1" as="geometry">'
+            f'<Array as="points">'
+            f'<mxPoint x="{lajur}" y="{y1}"/><mxPoint x="{lajur}" y="{y2}"/>'
+            f'</Array></mxGeometry></mxCell>'
         )
 
     isi_sel = "\n        ".join(sel)
@@ -357,7 +427,7 @@ def tulis_png(tujuan: Path) -> None:
                 garis([(x, bawah_pk), (x + w, bawah_pk)])
 
     # Relasi
-    for anak, fk, induk, pk, sisi in RELASI:
+    for anak, fk, induk, pk, sisi, wajib, lajur in RELASI:
         ta, ti = TABEL[anak], TABEL[induk]
         y1 = baris_y(anak, cari_kolom(anak, fk))
         y2 = baris_y(induk, cari_kolom(induk, pk))
@@ -367,13 +437,14 @@ def tulis_png(tujuan: Path) -> None:
         else:                        # anak di kanan induk
             x1, x2 = ta["x"], ti["x"] + ti["lebar"]
 
-        xm = (x1 + x2) / 2
-        garis([(x1, y1), (xm, y1), (xm, y2), (x2, y2)], warna=WARNA_RELASI)
+        garis([(x1, y1), (lajur, y1), (lajur, y2), (x2, y2)], warna=WARNA_RELASI)
 
-        arah_anak = 1 if x1 < xm else -1
-        arah_induk = 1 if x2 < xm else -1
-        kaki_gagak(d, s, x1, y1, arah_anak)
-        satu(d, s, x2, y2, arah_induk)
+        kaki_gagak(d, s, x1, y1, 1 if x1 < lajur else -1)
+
+        if wajib:
+            tepat_satu(d, s, x2, y2, 1 if x2 < lajur else -1)
+        else:
+            nol_atau_satu(d, s, x2, y2, 1 if x2 < lajur else -1)
 
     img.save(tujuan, "PNG", dpi=(96 * SKALA_PNG, 96 * SKALA_PNG))
 
@@ -391,8 +462,8 @@ def kaki_gagak(d, s, x, y, arah):
                fill=WARNA_RELASI, width=max(1, s))
 
 
-def satu(d, s, x, y, arah):
-    """Lingkaran + satu garis: nol atau satu (karena foreign key-nya nullable)."""
+def nol_atau_satu(d, s, x, y, arah):
+    """Lingkaran + satu garis: foreign key-nya nullable."""
     r = 3
     pusat = x + arah * (r + 9)
     d.ellipse([(pusat - r) * s, (y - r) * s, (pusat + r) * s, (y + r) * s],
@@ -401,6 +472,14 @@ def satu(d, s, x, y, arah):
     palang = x + arah * 7
     d.line([(palang * s, (y - 6) * s), (palang * s, (y + 6) * s)],
            fill=WARNA_RELASI, width=max(1, s))
+
+
+def tepat_satu(d, s, x, y, arah):
+    """Dua garis: foreign key-nya NOT NULL, jadi induknya selalu ada."""
+    for jarak in (6, 11):
+        px = x + arah * jarak
+        d.line([(px * s, (y - 6) * s), (px * s, (y + 6) * s)],
+               fill=WARNA_RELASI, width=max(1, s))
 
 
 if __name__ == "__main__":

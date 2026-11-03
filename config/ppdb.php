@@ -23,40 +23,14 @@ return [
 
     'prefix_nomor' => 'PPDB',
 
-    'jenjang' => [
-        'kb' => [
-            'label' => 'Kelompok Bermain (KB)',
-            'usia' => '2 - 4 tahun',
-            'kuota' => 25,
-        ],
-        'ra-a' => [
-            'label' => 'RA Kelompok A',
-            'usia' => '4 - 5 tahun',
-            'kuota' => 30,
-        ],
-        'ra-b' => [
-            'label' => 'RA Kelompok B',
-            'usia' => '5 - 6 tahun',
-            'kuota' => 30,
-        ],
-        'tpa' => [
-            'label' => 'Taman Pendidikan Al-Quran (TPA)',
-            'usia' => '4 - 12 tahun',
-            'kuota' => 40,
-        ],
-        'dta' => [
-            'label' => 'Diniyah Takmiliyah Awaliyah (DTA)',
-            'usia' => '7 - 12 tahun',
-            'kuota' => 40,
-        ],
-    ],
-
-    'status' => [
-        'baru' => ['label' => 'Menunggu Verifikasi', 'warna' => 'amber'],
-        'diverifikasi' => ['label' => 'Berkas Terverifikasi', 'warna' => 'sky'],
-        'diterima' => ['label' => 'Diterima', 'warna' => 'green'],
-        'ditolak' => ['label' => 'Belum Diterima', 'warna' => 'rose'],
-    ],
+    /*
+    | Jenjang program dan status seleksi tidak lagi di sini: keduanya sudah
+    | jadi tabel referensi (jenjang dan status_pendaftaran) supaya
+    | pendaftaran_siswa menyimpan id-nya, bukan menyalin ulang teksnya di
+    | tiap baris. Isinya dibuat saat migrasi.
+    |
+    | Lihat App\Models\Jenjang dan App\Models\StatusPendaftaran.
+    */
 
     'berkas' => [
         'maks_kb' => 2048,

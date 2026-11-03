@@ -1,8 +1,18 @@
 @props(['status'])
 
+{{--
+    Lencana status pendaftaran.
+
+    Menerima model App\Models\StatusPendaftaran, bukan kode berupa teks: label
+    dan warnanya kini tersimpan di tabel status_pendaftaran, jadi mengubahnya
+    tidak perlu menyentuh berkas ini.
+
+    Pakai: <x-lencana-status :status="$pendaftaran->status" />
+--}}
+
 @php
-    $warna = config("ppdb.status.{$status}.warna", 'slate');
-    $label = config("ppdb.status.{$status}.label", $status);
+    $warna = $status?->warna ?? 'slate';
+    $label = $status?->label ?? 'Tidak diketahui';
 
     $gaya = match ($warna) {
         'amber' => 'bg-kuning-100 text-kuning-500',

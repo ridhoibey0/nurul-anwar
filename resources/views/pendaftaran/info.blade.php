@@ -62,9 +62,9 @@
                         <tbody class="divide-y divide-hijau-100">
                             @foreach ($jenjang as $item)
                                 <tr>
-                                    <td class="px-6 py-4 font-semibold text-tinta">{{ $item['label'] }}</td>
-                                    <td class="px-6 py-4 text-tinta-lembut">{{ $item['usia'] }}</td>
-                                    <td class="px-6 py-4 text-tinta-lembut">{{ $item['kuota'] }} anak</td>
+                                    <td class="px-6 py-4 font-semibold text-tinta">{{ $item->nama }}</td>
+                                    <td class="px-6 py-4 text-tinta-lembut">{{ $item->usia }}</td>
+                                    <td class="px-6 py-4 text-tinta-lembut">{{ $item->kuota }} anak</td>
                                 </tr>
                             @endforeach
                         </tbody>

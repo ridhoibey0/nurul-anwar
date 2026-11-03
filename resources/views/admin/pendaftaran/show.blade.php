@@ -3,6 +3,11 @@
 @section('title', 'Detail Pendaftar')
 
 @php
+    $alamat = $pendaftaran->alamat;
+    $ayah = $pendaftaran->orangTuaPeran(\App\Models\OrangTua::AYAH);
+    $ibu = $pendaftaran->orangTuaPeran(\App\Models\OrangTua::IBU);
+    $wali = $pendaftaran->orangTuaPeran(\App\Models\OrangTua::WALI);
+
     $kelompok = [
         'Data Calon Siswa' => [
             'Nama lengkap' => $pendaftaran->nama_lengkap,
@@ -18,32 +23,32 @@
             'Riwayat kesehatan' => $pendaftaran->riwayat_kesehatan,
         ],
         'Alamat' => [
-            'Alamat' => $pendaftaran->alamat,
-            'Kelurahan' => $pendaftaran->kelurahan,
-            'Kecamatan' => $pendaftaran->kecamatan,
-            'Kota / Kabupaten' => $pendaftaran->kota,
-            'Kode pos' => $pendaftaran->kode_pos,
+            'Alamat' => $alamat?->jalan,
+            'Kelurahan' => $alamat?->kelurahan,
+            'Kecamatan' => $alamat?->kecamatan,
+            'Kota / Kabupaten' => $alamat?->kota,
+            'Kode pos' => $alamat?->kode_pos,
         ],
         'Data Ayah' => [
-            'Nama' => $pendaftaran->nama_ayah,
-            'NIK' => $pendaftaran->nik_ayah,
-            'Pendidikan' => $pendaftaran->pendidikan_ayah,
-            'Pekerjaan' => $pendaftaran->pekerjaan_ayah,
-            'Penghasilan' => $pendaftaran->penghasilan_ayah,
-            'Telepon' => $pendaftaran->telepon_ayah,
+            'Nama' => $ayah?->nama,
+            'NIK' => $ayah?->nik,
+            'Pendidikan' => $ayah?->pendidikan,
+            'Pekerjaan' => $ayah?->pekerjaan,
+            'Penghasilan' => $ayah?->penghasilan,
+            'Telepon' => $ayah?->telepon,
         ],
         'Data Ibu' => [
-            'Nama' => $pendaftaran->nama_ibu,
-            'NIK' => $pendaftaran->nik_ibu,
-            'Pendidikan' => $pendaftaran->pendidikan_ibu,
-            'Pekerjaan' => $pendaftaran->pekerjaan_ibu,
-            'Penghasilan' => $pendaftaran->penghasilan_ibu,
-            'Telepon' => $pendaftaran->telepon_ibu,
+            'Nama' => $ibu?->nama,
+            'NIK' => $ibu?->nik,
+            'Pendidikan' => $ibu?->pendidikan,
+            'Pekerjaan' => $ibu?->pekerjaan,
+            'Penghasilan' => $ibu?->penghasilan,
+            'Telepon' => $ibu?->telepon,
         ],
         'Wali & Kontak' => [
-            'Nama wali' => $pendaftaran->nama_wali,
-            'Hubungan' => $pendaftaran->hubungan_wali,
-            'Telepon wali' => $pendaftaran->telepon_wali,
+            'Nama wali' => $wali?->nama,
+            'Hubungan' => $wali?->hubungan,
+            'Telepon wali' => $wali?->telepon,
             'WhatsApp utama' => $pendaftaran->whatsapp,
             'Email' => $pendaftaran->email,
             'Catatan orang tua' => $pendaftaran->catatan_orang_tua,
@@ -122,9 +127,9 @@
                     <div>
                         <label for="status" class="block text-xs font-semibold text-tinta">Status</label>
                         <select id="status" name="status" class="mt-2 block w-full rounded-2xl border-2 border-hijau-100 bg-white px-4 py-2.5 text-sm text-tinta focus:border-hijau-400 focus:outline-none">
-                            @foreach (config('ppdb.status') as $kunci => $status)
-                                <option value="{{ $kunci }}" @selected(old('status', $pendaftaran->status) === $kunci)>
-                                    {{ $status['label'] }}
+                            @foreach ($daftarStatus as $status)
+                                <option value="{{ $status->kode }}" @selected(old('status', $pendaftaran->status_kode) === $status->kode)>
+                                    {{ $status->label }}
                                 </option>
                             @endforeach
                         </select>
@@ -167,11 +172,15 @@
                 <h3 class="font-display text-lg text-tinta">Berkas</h3>
 
                 <ul class="mt-5 grid gap-3">
-                    @foreach (['kk' => 'Kartu Keluarga', 'akta' => 'Akta Kelahiran', 'foto' => 'Pas Foto Anak'] as $jenis => $label)
-                        @php $path = $pendaftaran->{'berkas_'.$jenis}; @endphp
+                    @foreach ($pendaftaran->daftarBerkas() as $item)
+                        @php
+                            $jenis = $item['jenis'];
+                            $label = $item['label'];
+                            $berkas = $item['berkas'];
+                        @endphp
 
                         <li>
-                            @if ($path)
+                            @if ($berkas)
                                 <a
                                     href="{{ route('admin.pendaftaran.berkas', [$pendaftaran, $jenis]) }}"
                                     target="_blank"
@@ -182,7 +191,7 @@
                                     </span>
                                     <span class="min-w-0 flex-1">
                                         <span class="block text-sm font-semibold text-tinta">{{ $label }}</span>
-                                        <span class="block truncate text-[11px] text-tinta-lembut">{{ basename($path) }}</span>
+                                        <span class="block truncate text-[11px] text-tinta-lembut">{{ basename($berkas->path) }}</span>
                                     </span>
                                     <x-ikon nama="unduh" class="h-4 w-4 shrink-0 text-tinta-lembut" />
                                 </a>

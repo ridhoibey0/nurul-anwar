@@ -4,7 +4,9 @@
 @section('description', 'Isi formulir pendaftaran siswa baru '.config('sekolah.nama').' secara online. Hanya butuh sekitar 10 menit.')
 
 @php
-    $opsiJenjang = collect($jenjang)->map(fn ($j) => $j['label'].' ('.$j['usia'].')')->all();
+    // Dikunci dengan kode jenjang, bukan nomor urut: itu nilai yang dikirim
+    // formulir dan yang dicocokkan aturan validasi exists:jenjang,kode.
+    $opsiJenjang = $jenjang->mapWithKeys(fn ($j) => [$j->kode => $j->nama.' ('.$j->usia.')'])->all();
 
     $opsiPendidikan = [
         'Tidak sekolah' => 'Tidak sekolah',

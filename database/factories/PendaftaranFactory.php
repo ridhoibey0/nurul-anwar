@@ -2,7 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Alamat;
+use App\Models\BerkasPendaftaran;
+use App\Models\Jenjang;
+use App\Models\OrangTua;
 use App\Models\Pendaftaran;
+use App\Models\StatusPendaftaran;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,7 +20,6 @@ class PendaftaranFactory extends Factory
     public function definition(): array
     {
         $tahunAjaran = config('ppdb.tahun_ajaran');
-        $jenjang = fake()->randomElement(array_keys(config('ppdb.jenjang')));
         $kelamin = fake()->randomElement(['L', 'P']);
 
         return [
@@ -23,7 +27,12 @@ class PendaftaranFactory extends Factory
                 .substr($tahunAjaran, 2, 2).substr($tahunAjaran, -2).'-'
                 .str_pad((string) fake()->unique()->numberBetween(1, 9999), 4, '0', STR_PAD_LEFT),
             'tahun_ajaran' => $tahunAjaran,
-            'jenjang' => $jenjang,
+
+            // inRandomOrder()->value('id') dipakai supaya factory tidak ikut
+            // membuat baris jenjang baru: isinya tabel referensi yang sudah
+            // terisi sejak migrasi.
+            'jenjang_id' => Jenjang::query()->inRandomOrder()->value('id'),
+            'status_id' => StatusPendaftaran::query()->inRandomOrder()->value('id'),
 
             'nama_lengkap' => $kelamin === 'L' ? fake()->name('male') : fake()->name('female'),
             'nama_panggilan' => fake()->firstName(),
@@ -35,36 +44,70 @@ class PendaftaranFactory extends Factory
             'jumlah_saudara' => fake()->numberBetween(0, 3),
             'agama' => 'Islam',
 
-            'alamat' => fake()->streetAddress(),
-            'kelurahan' => 'Kahuripan',
-            'kecamatan' => 'Tawang',
-            'kota' => 'Kota Tasikmalaya',
-            'kode_pos' => fake()->numerify('461##'),
+            'alamat_id' => Alamat::factory(),
 
             'asal_sekolah' => fake()->optional()->company(),
             'riwayat_kesehatan' => fake()->optional()->sentence(),
-
-            'nama_ayah' => fake()->name('male'),
-            'nik_ayah' => fake()->numerify('################'),
-            'pendidikan_ayah' => fake()->randomElement(['SMA/SMK', 'D3', 'S1']),
-            'pekerjaan_ayah' => fake()->jobTitle(),
-            'penghasilan_ayah' => fake()->randomElement(['< 2 juta', '2 - 5 juta', '5 - 10 juta']),
-            'telepon_ayah' => fake()->numerify('08##########'),
-
-            'nama_ibu' => fake()->name('female'),
-            'nik_ibu' => fake()->numerify('################'),
-            'pendidikan_ibu' => fake()->randomElement(['SMA/SMK', 'D3', 'S1']),
-            'pekerjaan_ibu' => fake()->randomElement(['Ibu Rumah Tangga', 'Guru', 'Wiraswasta']),
-            'penghasilan_ibu' => fake()->randomElement(['Tidak berpenghasilan', '< 2 juta', '2 - 5 juta']),
-            'telepon_ibu' => fake()->numerify('08##########'),
 
             'whatsapp' => fake()->numerify('08##########'),
             'email' => fake()->optional()->safeEmail(),
 
             'catatan_orang_tua' => fake()->optional()->sentence(),
 
-            'status' => fake()->randomElement(array_keys(config('ppdb.status'))),
             'created_at' => fake()->dateTimeBetween('-2 months'),
         ];
+    }
+
+    /** Jenjang tertentu, mis. ->jenjang('ra-a'). */
+    public function jenjang(string $kode): static
+    {
+        return $this->state(fn (): array => [
+            'jenjang_id' => Jenjang::query()->where('kode', $kode)->value('id'),
+        ]);
+    }
+
+    /** Status tertentu, mis. ->status('diterima'). */
+    public function status(string $kode): static
+    {
+        return $this->state(fn (): array => [
+            'status_id' => StatusPendaftaran::query()->where('kode', $kode)->value('id'),
+        ]);
+    }
+
+    /**
+     * Lengkapi dengan data ayah, ibu, dan berkas wajib.
+     *
+     * Dipakai pengujian yang memeriksa tampilan detail pendaftar atau isi
+     * bukti pendaftaran, bukan yang cuma butuh satu barisnya ada.
+     */
+    public function lengkap(): static
+    {
+        return $this->afterCreating(function (Pendaftaran $pendaftaran): void {
+            $pendaftaran->orangTua()->createMany([
+                [
+                    'peran' => OrangTua::AYAH,
+                    'nama' => fake()->name('male'),
+                    'nik' => fake()->numerify('################'),
+                    'pendidikan' => fake()->randomElement(['SMA/SMK', 'D3', 'S1']),
+                    'pekerjaan' => fake()->jobTitle(),
+                    'penghasilan' => fake()->randomElement(['< 2 juta', '2 - 5 juta', '5 - 10 juta']),
+                    'telepon' => fake()->numerify('08##########'),
+                ],
+                [
+                    'peran' => OrangTua::IBU,
+                    'nama' => fake()->name('female'),
+                    'nik' => fake()->numerify('################'),
+                    'pendidikan' => fake()->randomElement(['SMA/SMK', 'D3', 'S1']),
+                    'pekerjaan' => fake()->randomElement(['Ibu Rumah Tangga', 'Guru', 'Wiraswasta']),
+                    'penghasilan' => fake()->randomElement(['Tidak berpenghasilan', '< 2 juta']),
+                    'telepon' => fake()->numerify('08##########'),
+                ],
+            ]);
+
+            $pendaftaran->berkas()->createMany([
+                ['jenis' => BerkasPendaftaran::KK, 'path' => 'ppdb/contoh/kk-'.$pendaftaran->id.'.pdf'],
+                ['jenis' => BerkasPendaftaran::AKTA, 'path' => 'ppdb/contoh/akta-'.$pendaftaran->id.'.jpg'],
+            ]);
+        });
     }
 }

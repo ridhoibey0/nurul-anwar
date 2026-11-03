@@ -10,12 +10,12 @@
             <p class="mt-1 text-xs text-hijau-200">Tahun ajaran {{ $tahunAjaran }}</p>
         </div>
 
-        @foreach (config('ppdb.status') as $kunci => $status)
+        @foreach ($daftarStatus as $status)
             <div class="rounded-[1.75rem] bg-white p-6 bayang-lembut">
-                <x-lencana-status :status="$kunci" />
-                <p class="mt-3 font-display text-3xl text-tinta">{{ $perStatus[$kunci] ?? 0 }}</p>
+                <x-lencana-status :status="$status" />
+                <p class="mt-3 font-display text-3xl text-tinta">{{ $perStatus[$status->kode] ?? 0 }}</p>
                 <a
-                    href="{{ route('admin.pendaftaran.index', ['status' => $kunci]) }}"
+                    href="{{ route('admin.pendaftaran.index', ['status' => $status->kode]) }}"
                     class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-hijau-700 hover:gap-2"
                 >
                     Lihat data
@@ -63,17 +63,17 @@
             <h2 class="font-display text-lg text-tinta">Sebaran per jenjang</h2>
 
             <ul class="mt-6 grid gap-4">
-                @foreach (config('ppdb.jenjang') as $kunci => $item)
+                @foreach ($daftarJenjang as $item)
                     @php
-                        $jumlah = $perJenjang[$kunci] ?? 0;
-                        $kuota = max(1, (int) $item['kuota']);
+                        $jumlah = $perJenjang[$item->kode] ?? 0;
+                        $kuota = max(1, $item->kuota);
                         $persen = min(100, round($jumlah / $kuota * 100));
                     @endphp
 
                     <li>
                         <div class="flex items-baseline justify-between gap-3 text-sm">
-                            <span class="font-semibold text-tinta">{{ $item['label'] }}</span>
-                            <span class="shrink-0 text-xs text-tinta-lembut">{{ $jumlah }} / {{ $item['kuota'] }}</span>
+                            <span class="font-semibold text-tinta">{{ $item->nama }}</span>
+                            <span class="shrink-0 text-xs text-tinta-lembut">{{ $jumlah }} / {{ $item->kuota }}</span>
                         </div>
                         <div class="mt-2 h-2 overflow-hidden rounded-full bg-hijau-100">
                             <div

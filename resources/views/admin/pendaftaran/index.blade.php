@@ -22,8 +22,8 @@
                 <label for="status" class="block text-xs font-semibold text-tinta">Status</label>
                 <select id="status" name="status" class="mt-2 block w-full rounded-2xl border-2 border-hijau-100 bg-white px-4 py-2.5 text-sm text-tinta focus:border-hijau-400 focus:outline-none">
                     <option value="">Semua status</option>
-                    @foreach (config('ppdb.status') as $kunci => $status)
-                        <option value="{{ $kunci }}" @selected(($filter['status'] ?? '') === $kunci)>{{ $status['label'] }}</option>
+                    @foreach ($daftarStatus as $status)
+                        <option value="{{ $status->kode }}" @selected(($filter['status'] ?? '') === $status->kode)>{{ $status->label }}</option>
                     @endforeach
                 </select>
             </div>
@@ -32,8 +32,8 @@
                 <label for="jenjang" class="block text-xs font-semibold text-tinta">Jenjang</label>
                 <select id="jenjang" name="jenjang" class="mt-2 block w-full rounded-2xl border-2 border-hijau-100 bg-white px-4 py-2.5 text-sm text-tinta focus:border-hijau-400 focus:outline-none">
                     <option value="">Semua jenjang</option>
-                    @foreach (config('ppdb.jenjang') as $kunci => $item)
-                        <option value="{{ $kunci }}" @selected(($filter['jenjang'] ?? '') === $kunci)>{{ $item['label'] }}</option>
+                    @foreach ($daftarJenjang as $jenjang)
+                        <option value="{{ $jenjang->kode }}" @selected(($filter['jenjang'] ?? '') === $jenjang->kode)>{{ $jenjang->nama }}</option>
                     @endforeach
                 </select>
             </div>

@@ -287,6 +287,36 @@ php artisan tinker
 
 Blog tidak diisi data contoh: artikel ditulis sendiri dari panel admin.
 
+## Struktur data pendaftaran
+
+Satu formulir yang dikirim orang tua tidak tersimpan sebagai satu baris lebar,
+melainkan terurai ke beberapa tabel:
+
+| Tabel | Isi |
+| --- | --- |
+| `pendaftaran_siswa` | Data anak, kontak, dan status seleksi |
+| `alamat` | Alamat tempat tinggal |
+| `pendaftaran_orang_tua` | Ayah, ibu, dan wali &mdash; dibedakan kolom `peran`, bukan kolom bernomor |
+| `pendaftaran_berkas` | KK, akta, pas foto &mdash; dibedakan kolom `jenis` |
+| `jenjang` | Tabel referensi: KB, RA A/B, TPA, DTA |
+| `status_pendaftaran` | Tabel referensi: baru, diverifikasi, diterima, ditolak |
+
+Dua tabel referensi terakhir **diisi langsung di migrasinya**, bukan lewat
+seeder: tanpa jenjang, formulir pendaftaran tidak punya pilihan apa pun, dan
+tanpa status `baru`, pendaftaran yang masuk tidak punya status untuk dipasang.
+Keduanya data wajib, bukan data contoh.
+
+Nama isian di formulir sengaja tidak ikut berubah (`nama_ayah`, `berkas_kk`,
+dan seterusnya). Formulir adalah tampilan, dan bentuk penyimpanan tidak perlu
+bocor ke sana; pemetaannya dikerjakan di `PendaftaranController`.
+
+Akibatnya, menambah syarat berkas baru cukup menambah satu baris di
+`BerkasPendaftaran::JENIS` plus aturan validasinya &mdash; tidak perlu mengubah
+struktur tabel. Begitu juga menambah peran selain ayah/ibu/wali, lewat
+`PendaftaranController::ORANG_TUA`.
+
+ERD lengkapnya ada di [`docs/erd/`](docs/erd/), siap ditempel ke laporan.
+
 ## Berkas pendaftar
 
 Kartu Keluarga, akta, dan pas foto berisi data pribadi, jadi **tidak** disimpan
@@ -387,6 +417,11 @@ Pengujian memakai SQLite in-memory, jadi tidak menyentuh database MySQL Anda.
 ```
 app/Http/Controllers/     HomeController, PendaftaranController, Admin/*
 app/Models/Pendaftaran.php    model + penomoran pendaftaran
+app/Models/Jenjang.php        tabel referensi jenjang program
+app/Models/StatusPendaftaran.php  tabel referensi status seleksi
+app/Models/Alamat.php         alamat tempat tinggal pendaftar
+app/Models/OrangTua.php       ayah / ibu / wali, dibedakan kolom peran
+app/Models/BerkasPendaftaran.php  KK / akta / pas foto per pendaftaran
 app/Models/Pengaturan.php     identitas sekolah & PPDB, diubah dari panel admin
 app/Models/Artikel.php        artikel blog + slug & status terbit
 app/Models/Galeri.php         foto kegiatan di halaman depan
@@ -394,6 +429,7 @@ app/Support/Gambar.php        pengecil foto unggahan (pakai GD)
 app/Support/Merek.php         logo & gambar bagikan beserta nilai bawaannya
 config/sekolah.php        identitas sekolah
 config/ppdb.php           nilai bawaan PPDB
+docs/erd/                 ERD untuk laporan (drawio + png)
 config/konten.php         isi landing page
 resources/views/sections/ potongan landing page
 resources/views/pendaftaran/  info, formulir, konfirmasi, cek status

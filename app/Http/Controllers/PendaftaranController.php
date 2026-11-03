@@ -3,7 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePendaftaranRequest;
+use App\Models\Alamat;
+use App\Models\BerkasPendaftaran;
+use App\Models\Jenjang;
+use App\Models\OrangTua;
 use App\Models\Pendaftaran;
+use App\Models\StatusPendaftaran;
 use App\Support\Merek;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
@@ -16,12 +21,43 @@ use Illuminate\Support\Str;
 class PendaftaranController extends Controller
 {
     /**
+     * Nama isian di formulir => kolom di tabel pendaftaran_orang_tua.
+     *
+     * Ditulis sekali di sini supaya menambah peran baru (mis. penanggung
+     * jawab selain orang tua) cukup menambah satu baris, tanpa menyentuh
+     * struktur tabel mana pun.
+     */
+    private const ORANG_TUA = [
+        OrangTua::AYAH => [
+            'nama' => 'nama_ayah',
+            'nik' => 'nik_ayah',
+            'pendidikan' => 'pendidikan_ayah',
+            'pekerjaan' => 'pekerjaan_ayah',
+            'penghasilan' => 'penghasilan_ayah',
+            'telepon' => 'telepon_ayah',
+        ],
+        OrangTua::IBU => [
+            'nama' => 'nama_ibu',
+            'nik' => 'nik_ibu',
+            'pendidikan' => 'pendidikan_ibu',
+            'pekerjaan' => 'pekerjaan_ibu',
+            'penghasilan' => 'penghasilan_ibu',
+            'telepon' => 'telepon_ibu',
+        ],
+        OrangTua::WALI => [
+            'nama' => 'nama_wali',
+            'hubungan' => 'hubungan_wali',
+            'telepon' => 'telepon_wali',
+        ],
+    ];
+
+    /**
      * Halaman informasi PPDB: alur, syarat, kuota per jenjang.
      */
     public function info(): View
     {
         return view('pendaftaran.info', [
-            'jenjang' => config('ppdb.jenjang'),
+            'jenjang' => Jenjang::query()->urut()->get(),
             'alur' => config('ppdb.alur'),
             'syarat' => config('ppdb.syarat'),
         ]);
@@ -39,42 +75,114 @@ class PendaftaranController extends Controller
         }
 
         return view('pendaftaran.create', [
-            'jenjang' => config('ppdb.jenjang'),
+            'jenjang' => Jenjang::query()->urut()->get(),
             'syarat' => config('ppdb.syarat'),
         ]);
     }
 
+    /**
+     * Simpan formulir.
+     *
+     * Nama isian di formulir sengaja tidak ikut berubah saat tabelnya
+     * dipecah: formulir adalah tampilan, dan bentuk penyimpanan tidak perlu
+     * bocor ke sana. Pemetaannya dikerjakan di controller ini.
+     */
     public function store(StorePendaftaranRequest $request): RedirectResponse
     {
-        $data = $request->safe()->except(['persetujuan', 'berkas_kk', 'berkas_akta', 'berkas_foto']);
+        $data = $request->validated();
+        $tahunAjaran = config('ppdb.tahun_ajaran');
 
-        $folder = 'ppdb/'.str_replace('/', '-', config('ppdb.tahun_ajaran'));
+        $pendaftaran = DB::transaction(function () use ($request, $data, $tahunAjaran): Pendaftaran {
+            $alamat = Alamat::create([
+                'jalan' => $data['alamat'],
+                'kelurahan' => $data['kelurahan'] ?? null,
+                'kecamatan' => $data['kecamatan'] ?? null,
+                'kota' => $data['kota'] ?? null,
+                'kode_pos' => $data['kode_pos'] ?? null,
+            ]);
 
-        foreach (['berkas_kk', 'berkas_akta', 'berkas_foto'] as $field) {
-            if ($request->hasFile($field)) {
-                $berkas = $request->file($field);
+            $pendaftaran = Pendaftaran::create([
+                'nomor_pendaftaran' => Pendaftaran::buatNomor($tahunAjaran),
+                'tahun_ajaran' => $tahunAjaran,
+                'jenjang_id' => Jenjang::dariKode($data['jenjang'])?->id,
+                'status_id' => StatusPendaftaran::awal()->id,
+                'alamat_id' => $alamat->id,
 
-                $nama = Str::slug(Str::limit($request->input('nama_lengkap'), 40, ''))
-                    .'-'.$field.'-'.Str::random(8).'.'.$berkas->extension();
+                'nama_lengkap' => $data['nama_lengkap'],
+                'nama_panggilan' => $data['nama_panggilan'] ?? null,
+                'jenis_kelamin' => $data['jenis_kelamin'],
+                'tempat_lahir' => $data['tempat_lahir'],
+                'tanggal_lahir' => $data['tanggal_lahir'],
+                'nik' => $data['nik'] ?? null,
+                'anak_ke' => $data['anak_ke'] ?? null,
+                'jumlah_saudara' => $data['jumlah_saudara'] ?? null,
+                'agama' => $data['agama'],
 
-                // Disimpan di disk privat; hanya bisa diunduh lewat panel admin.
-                $data[$field] = $berkas->storeAs($folder, $nama, 'local');
-            }
-        }
+                'asal_sekolah' => $data['asal_sekolah'] ?? null,
+                'riwayat_kesehatan' => $data['riwayat_kesehatan'] ?? null,
 
-        $data['tahun_ajaran'] = config('ppdb.tahun_ajaran');
-        $data['status'] = 'baru';
-        $data['ip_pendaftar'] = $request->ip();
+                'whatsapp' => $data['whatsapp'],
+                'email' => $data['email'] ?? null,
+                'catatan_orang_tua' => $data['catatan_orang_tua'] ?? null,
 
-        $pendaftaran = DB::transaction(function () use ($data) {
-            $data['nomor_pendaftaran'] = Pendaftaran::buatNomor($data['tahun_ajaran']);
+                'ip_pendaftar' => $request->ip(),
+            ]);
 
-            return Pendaftaran::create($data);
+            $this->simpanOrangTua($pendaftaran, $data);
+            $this->simpanBerkas($pendaftaran, $request, $tahunAjaran);
+
+            return $pendaftaran;
         });
 
         return redirect()
             ->route('ppdb.selesai')
             ->with('pendaftaran_id', $pendaftaran->id);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function simpanOrangTua(Pendaftaran $pendaftaran, array $data): void
+    {
+        foreach (self::ORANG_TUA as $peran => $peta) {
+            // Wali boleh dikosongkan; tanpa nama, barisnya tidak dibuat sama
+            // sekali daripada menyimpan baris berisi kolom kosong semua.
+            if (blank($data[$peta['nama']] ?? null)) {
+                continue;
+            }
+
+            $isi = ['peran' => $peran];
+
+            foreach ($peta as $kolom => $isian) {
+                $isi[$kolom] = $data[$isian] ?? null;
+            }
+
+            $pendaftaran->orangTua()->create($isi);
+        }
+    }
+
+    private function simpanBerkas(Pendaftaran $pendaftaran, Request $request, string $tahunAjaran): void
+    {
+        $folder = 'ppdb/'.str_replace('/', '-', $tahunAjaran);
+
+        foreach (array_keys(BerkasPendaftaran::JENIS) as $jenis) {
+            $isian = 'berkas_'.$jenis;
+
+            if (! $request->hasFile($isian)) {
+                continue;
+            }
+
+            $berkas = $request->file($isian);
+
+            $nama = Str::slug(Str::limit($pendaftaran->nama_lengkap, 40, ''))
+                .'-'.$isian.'-'.Str::random(8).'.'.$berkas->extension();
+
+            // Disimpan di disk privat; hanya bisa diunduh lewat panel admin.
+            $pendaftaran->berkas()->create([
+                'jenis' => $jenis,
+                'path' => $berkas->storeAs($folder, $nama, 'local'),
+            ]);
+        }
     }
 
     /**
@@ -87,7 +195,7 @@ class PendaftaranController extends Controller
     {
         $id = $request->session()->get('pendaftaran_id');
 
-        $pendaftaran = $id ? Pendaftaran::find($id) : null;
+        $pendaftaran = $id ? Pendaftaran::query()->lengkap()->find($id) : null;
 
         if (! $pendaftaran) {
             return redirect()->route('ppdb.cek');
@@ -163,6 +271,7 @@ class PendaftaranController extends Controller
         ]);
 
         return Pendaftaran::query()
+            ->lengkap()
             ->where('nomor_pendaftaran', trim(strtoupper($validated['nomor_pendaftaran'])))
             ->whereDate('tanggal_lahir', $validated['tanggal_lahir'])
             ->first();

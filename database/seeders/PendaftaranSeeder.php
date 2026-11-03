@@ -17,6 +17,8 @@ class PendaftaranSeeder extends Seeder
             return;
         }
 
-        Pendaftaran::factory()->count(12)->create();
+        // lengkap() ikut membuat data ayah, ibu, dan berkasnya, supaya
+        // halaman detail pendaftar tidak tampil separuh kosong.
+        Pendaftaran::factory()->count(12)->lengkap()->create();
     }
 }

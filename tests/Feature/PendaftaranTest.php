@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\BerkasPendaftaran;
 use App\Models\Pendaftaran;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -70,8 +71,15 @@ class PendaftaranTest extends TestCase
 
         $pendaftaran = Pendaftaran::firstOrFail();
 
-        Storage::disk('local')->assertExists($pendaftaran->berkas_kk);
-        Storage::disk('local')->assertExists($pendaftaran->berkas_akta);
+        // Berkas kini baris tersendiri di pendaftaran_berkas, bukan kolom.
+        $this->assertCount(2, $pendaftaran->berkas);
+
+        foreach ([BerkasPendaftaran::KK, BerkasPendaftaran::AKTA] as $jenis) {
+            $berkas = $pendaftaran->berkasJenis($jenis);
+
+            $this->assertNotNull($berkas, "Berkas {$jenis} tidak tersimpan.");
+            Storage::disk('local')->assertExists($berkas->path);
+        }
     }
 
     public function test_formulir_menolak_data_tidak_lengkap(): void
@@ -87,10 +95,9 @@ class PendaftaranTest extends TestCase
 
     public function test_cek_status_hanya_cocok_dengan_tanggal_lahir_yang_benar(): void
     {
-        $pendaftaran = Pendaftaran::factory()->create([
-            'tanggal_lahir' => '2021-04-17',
-            'status' => 'diterima',
-        ]);
+        $pendaftaran = Pendaftaran::factory()
+            ->status('diterima')
+            ->create(['tanggal_lahir' => '2021-04-17']);
 
         $this->post(route('ppdb.cek.proses'), [
             'nomor_pendaftaran' => $pendaftaran->nomor_pendaftaran,
@@ -112,7 +119,7 @@ class PendaftaranTest extends TestCase
     public function test_panitia_dapat_memperbarui_status(): void
     {
         $panitia = User::factory()->create();
-        $pendaftaran = Pendaftaran::factory()->create(['status' => 'baru']);
+        $pendaftaran = Pendaftaran::factory()->status('baru')->create();
 
         $this->actingAs($panitia)
             ->patch(route('admin.pendaftaran.status', $pendaftaran), [
@@ -122,13 +129,17 @@ class PendaftaranTest extends TestCase
 
         $pendaftaran->refresh();
 
-        $this->assertSame('diterima', $pendaftaran->status);
+        $this->assertSame('diterima', $pendaftaran->status_kode);
         $this->assertSame($panitia->id, $pendaftaran->diverifikasi_oleh);
     }
 
     public function test_berkas_pendaftar_tidak_bisa_diunduh_tanpa_login(): void
     {
-        $pendaftaran = Pendaftaran::factory()->create(['berkas_kk' => 'ppdb/2026-2027/contoh.pdf']);
+        $pendaftaran = Pendaftaran::factory()->create();
+        $pendaftaran->berkas()->create([
+            'jenis' => BerkasPendaftaran::KK,
+            'path' => 'ppdb/2026-2027/contoh.pdf',
+        ]);
 
         $this->get(route('admin.pendaftaran.berkas', [$pendaftaran, 'kk']))
             ->assertRedirect(route('admin.login'));

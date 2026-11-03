@@ -29,6 +29,11 @@
         return $hasil;
     };
 
+    $alamat = $pendaftaran->alamat;
+    $ayah = $pendaftaran->orangTuaPeran(\App\Models\OrangTua::AYAH);
+    $ibu = $pendaftaran->orangTuaPeran(\App\Models\OrangTua::IBU);
+    $wali = $pendaftaran->orangTuaPeran(\App\Models\OrangTua::WALI);
+
     $dataAnak = $isi([
         'Nama lengkap' => $pendaftaran->nama_lengkap,
         'Nama panggilan' => $pendaftaran->nama_panggilan,
@@ -43,36 +48,36 @@
         'Riwayat kesehatan' => $pendaftaran->riwayat_kesehatan,
     ]);
 
-    $alamat = $isi([
-        'Alamat' => $pendaftaran->alamat,
-        'Kelurahan' => $pendaftaran->kelurahan,
-        'Kecamatan' => $pendaftaran->kecamatan,
-        'Kota / kabupaten' => $pendaftaran->kota,
-        'Kode pos' => $pendaftaran->kode_pos,
+    $daftarAlamat = $isi([
+        'Alamat' => $alamat?->jalan,
+        'Kelurahan' => $alamat?->kelurahan,
+        'Kecamatan' => $alamat?->kecamatan,
+        'Kota / kabupaten' => $alamat?->kota,
+        'Kode pos' => $alamat?->kode_pos,
     ]);
 
-    $ayah = $isi([
-        'Nama ayah' => $pendaftaran->nama_ayah,
-        'NIK ayah' => $pendaftaran->nik_ayah,
-        'Pendidikan' => $pendaftaran->pendidikan_ayah,
-        'Pekerjaan' => $pendaftaran->pekerjaan_ayah,
-        'Penghasilan' => $pendaftaran->penghasilan_ayah,
-        'Telepon' => $pendaftaran->telepon_ayah,
+    $dataAyah = $isi([
+        'Nama ayah' => $ayah?->nama,
+        'NIK ayah' => $ayah?->nik,
+        'Pendidikan' => $ayah?->pendidikan,
+        'Pekerjaan' => $ayah?->pekerjaan,
+        'Penghasilan' => $ayah?->penghasilan,
+        'Telepon' => $ayah?->telepon,
     ]);
 
-    $ibu = $isi([
-        'Nama ibu' => $pendaftaran->nama_ibu,
-        'NIK ibu' => $pendaftaran->nik_ibu,
-        'Pendidikan' => $pendaftaran->pendidikan_ibu,
-        'Pekerjaan' => $pendaftaran->pekerjaan_ibu,
-        'Penghasilan' => $pendaftaran->penghasilan_ibu,
-        'Telepon' => $pendaftaran->telepon_ibu,
+    $dataIbu = $isi([
+        'Nama ibu' => $ibu?->nama,
+        'NIK ibu' => $ibu?->nik,
+        'Pendidikan' => $ibu?->pendidikan,
+        'Pekerjaan' => $ibu?->pekerjaan,
+        'Penghasilan' => $ibu?->penghasilan,
+        'Telepon' => $ibu?->telepon,
     ]);
 
-    $wali = $isi([
-        'Nama wali' => $pendaftaran->nama_wali,
-        'Hubungan dengan anak' => $pendaftaran->hubungan_wali,
-        'Telepon wali' => $pendaftaran->telepon_wali,
+    $dataWali = $isi([
+        'Nama wali' => $wali?->nama,
+        'Hubungan dengan anak' => $wali?->hubungan,
+        'Telepon wali' => $wali?->telepon,
     ]);
 
     $kontak = $isi([
@@ -208,7 +213,7 @@
     <p class="bagian">B. Alamat Tempat Tinggal</p>
 
     <table class="data">
-        @foreach ($alamat as $label => $nilai)
+        @foreach ($daftarAlamat as $label => $nilai)
             <tr>
                 <td class="label">{{ $label }}</td>
                 <td class="nilai">{{ $nilai }}</td>
@@ -223,7 +228,7 @@
         <tr>
             <td class="kiri">
                 <table class="data">
-                    @foreach ($ayah as $label => $nilai)
+                    @foreach ($dataAyah as $label => $nilai)
                         <tr>
                             <td class="label">{{ $label }}</td>
                             <td class="nilai">{{ $nilai }}</td>
@@ -233,7 +238,7 @@
             </td>
             <td class="kanan">
                 <table class="data">
-                    @foreach ($ibu as $label => $nilai)
+                    @foreach ($dataIbu as $label => $nilai)
                         <tr>
                             <td class="label">{{ $label }}</td>
                             <td class="nilai">{{ $nilai }}</td>
@@ -244,9 +249,9 @@
         </tr>
     </table>
 
-    @if ($wali)
+    @if ($dataWali)
         <table class="data" style="margin-top: 6px;">
-            @foreach ($wali as $label => $nilai)
+            @foreach ($dataWali as $label => $nilai)
                 <tr>
                     <td class="label">{{ $label }}</td>
                     <td class="nilai">{{ $nilai }}</td>
@@ -268,10 +273,10 @@
     <p class="bagian">D. Berkas Yang Diterima Sistem</p>
 
     <table class="data">
-        @foreach ($pendaftaran->daftarBerkas() as $berkas)
+        @foreach ($pendaftaran->daftarBerkas() as $item)
             <tr>
-                <td class="label">{{ $berkas['label'] }}</td>
-                <td class="nilai">{{ filled($berkas['path']) ? 'Sudah diunggah' : 'Belum ada' }}</td>
+                <td class="label">{{ $item['label'] }}</td>
+                <td class="nilai">{{ $item['berkas'] ? 'Sudah diunggah' : 'Belum ada' }}</td>
             </tr>
         @endforeach
     </table>

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Pendaftaran extends Model
@@ -59,9 +60,40 @@ class Pendaftaran extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function jenjang(): BelongsTo
+    {
+        return $this->belongsTo(Jenjang::class, 'jenjang_id');
+    }
+
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(StatusPendaftaran::class, 'status_id');
+    }
+
+    public function alamat(): BelongsTo
+    {
+        return $this->belongsTo(Alamat::class, 'alamat_id');
+    }
+
+    public function orangTua(): HasMany
+    {
+        return $this->hasMany(OrangTua::class, 'pendaftaran_id');
+    }
+
+    public function berkas(): HasMany
+    {
+        return $this->hasMany(BerkasPendaftaran::class, 'pendaftaran_id');
+    }
+
     public function verifikator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diverifikasi_oleh');
+    }
+
+    /** Relasi yang hampir selalu ikut dibaca bersama pendaftarannya. */
+    public function scopeLengkap(Builder $query): Builder
+    {
+        return $query->with(['jenjang', 'status', 'alamat', 'orangTua', 'berkas']);
     }
 
     /*
@@ -79,20 +111,25 @@ class Pendaftaran extends Model
         return $query->where(function (Builder $q) use ($kata): void {
             $q->where('nomor_pendaftaran', 'like', "%{$kata}%")
                 ->orWhere('nama_lengkap', 'like', "%{$kata}%")
-                ->orWhere('nama_ayah', 'like', "%{$kata}%")
-                ->orWhere('nama_ibu', 'like', "%{$kata}%")
-                ->orWhere('whatsapp', 'like', "%{$kata}%");
+                ->orWhere('whatsapp', 'like', "%{$kata}%")
+                // Nama orang tua kini di tabel tersendiri, jadi dicari lewat
+                // relasinya supaya kotak pencarian panitia tetap menemukannya.
+                ->orWhereHas('orangTua', function (Builder $o) use ($kata): void {
+                    $o->where('nama', 'like', "%{$kata}%");
+                });
         });
     }
 
-    public function scopeStatus(Builder $query, ?string $status): Builder
+    /** Filter berdasarkan kode status, mis. "diterima". */
+    public function scopeStatus(Builder $query, ?string $kode): Builder
     {
-        return blank($status) ? $query : $query->where('status', $status);
+        return blank($kode) ? $query : $query->whereRelation('status', 'kode', $kode);
     }
 
-    public function scopeJenjang(Builder $query, ?string $jenjang): Builder
+    /** Filter berdasarkan kode jenjang, mis. "ra-a". */
+    public function scopeJenjang(Builder $query, ?string $kode): Builder
     {
-        return blank($jenjang) ? $query : $query->where('jenjang', $jenjang);
+        return blank($kode) ? $query : $query->whereRelation('jenjang', 'kode', $kode);
     }
 
     public function scopeTahunAjaran(Builder $query, ?string $tahunAjaran): Builder
@@ -108,17 +145,17 @@ class Pendaftaran extends Model
 
     public function getJenjangLabelAttribute(): string
     {
-        return config("ppdb.jenjang.{$this->jenjang}.label", $this->jenjang);
+        return $this->jenjang?->nama ?? '-';
     }
 
     public function getStatusLabelAttribute(): string
     {
-        return config("ppdb.status.{$this->status}.label", $this->status);
+        return $this->status?->label ?? '-';
     }
 
-    public function getStatusWarnaAttribute(): string
+    public function getStatusKodeAttribute(): ?string
     {
-        return config("ppdb.status.{$this->status}.warna", 'slate');
+        return $this->status?->kode;
     }
 
     public function getJenisKelaminLabelAttribute(): string
@@ -145,17 +182,53 @@ class Pendaftaran extends Model
         return $this->usiaPada();
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Orang tua & berkas
+    |--------------------------------------------------------------------------
+    */
+
+    /** Data satu peran, mis. orangTuaPeran('ayah'). */
+    public function orangTuaPeran(string $peran): ?OrangTua
+    {
+        return $this->orangTua->firstWhere('peran', $peran);
+    }
+
+    /** Pintasan yang sering dipakai di daftar dan ekspor. */
+    public function getNamaAyahAttribute(): ?string
+    {
+        return $this->orangTuaPeran(OrangTua::AYAH)?->nama;
+    }
+
+    public function getNamaIbuAttribute(): ?string
+    {
+        return $this->orangTuaPeran(OrangTua::IBU)?->nama;
+    }
+
+    public function berkasJenis(string $jenis): ?BerkasPendaftaran
+    {
+        return $this->berkas->firstWhere('jenis', $jenis);
+    }
+
     /**
-     * Daftar berkas yang diunggah, siap ditampilkan di panel admin.
+     * Seluruh jenis berkas yang diminta beserta status unggahannya, termasuk
+     * yang belum diunggah. Dipakai panel admin dan bukti pendaftaran.
      *
-     * @return array<int, array{label: string, path: string|null}>
+     * @return array<int, array{jenis: string, label: string, wajib: bool, berkas: BerkasPendaftaran|null}>
      */
     public function daftarBerkas(): array
     {
-        return [
-            ['label' => 'Kartu Keluarga', 'path' => $this->berkas_kk],
-            ['label' => 'Akta Kelahiran', 'path' => $this->berkas_akta],
-            ['label' => 'Pas Foto Anak', 'path' => $this->berkas_foto],
-        ];
+        $hasil = [];
+
+        foreach (BerkasPendaftaran::JENIS as $jenis => $keterangan) {
+            $hasil[] = [
+                'jenis' => $jenis,
+                'label' => $keterangan['label'],
+                'wajib' => $keterangan['wajib'],
+                'berkas' => $this->berkasJenis($jenis),
+            ];
+        }
+
+        return $hasil;
     }
 }

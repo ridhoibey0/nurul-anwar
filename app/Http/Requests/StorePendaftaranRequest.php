@@ -22,7 +22,9 @@ class StorePendaftaranRequest extends FormRequest
 
         return [
             // Langkah 1 - data calon siswa
-            'jenjang' => ['required', Rule::in(array_keys(config('ppdb.jenjang')))],
+            // Jenjang kini tabel referensi; yang dikirim formulir adalah
+            // kodenya (mis. "ra-a") supaya tautan dan filter tetap terbaca.
+            'jenjang' => ['required', 'string', Rule::exists('jenjang', 'kode')],
             'nama_lengkap' => ['required', 'string', 'min:3', 'max:120'],
             'nama_panggilan' => ['nullable', 'string', 'max:60'],
             'jenis_kelamin' => ['required', Rule::in(['L', 'P'])],
