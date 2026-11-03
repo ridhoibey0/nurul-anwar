@@ -40,6 +40,15 @@ Route::prefix('ppdb')->name('ppdb.')->group(function (): void {
     Route::post('/cek-status', [PendaftaranController::class, 'cekProses'])
         ->middleware('throttle:20,60')
         ->name('cek.proses');
+
+    /*
+    | Unduh bukti pendaftaran sebagai PDF. Sengaja POST, bukan GET: nomor
+    | pendaftaran dan tanggal lahir anak jadi tidak ikut tercatat di riwayat
+    | peramban, log server, maupun header Referer saat tautannya dibuka.
+    */
+    Route::post('/bukti', [PendaftaranController::class, 'bukti'])
+        ->middleware('throttle:20,60')
+        ->name('bukti');
 });
 
 /*

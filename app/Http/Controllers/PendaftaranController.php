@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePendaftaranRequest;
 use App\Models\Pendaftaran;
+use App\Support\Merek;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -106,6 +109,51 @@ class PendaftaranController extends Controller
 
     public function cekProses(Request $request): View
     {
+        $pendaftaran = $this->cariMandiri($request);
+
+        return view('pendaftaran.cek', [
+            'pendaftaran' => $pendaftaran,
+            'tidakDitemukan' => $pendaftaran === null,
+        ]);
+    }
+
+    /**
+     * Unduh bukti pendaftaran sebagai PDF.
+     *
+     * Dibuat di server, bukan dengan menyuruh peramban mencetak halaman:
+     * hasilnya berkas yang bisa disimpan dan dikirim lewat WhatsApp, tanpa
+     * ikut membawa menu, tombol, dan alamat halaman seperti hasil cetakan
+     * peramban.
+     *
+     * Syaratnya sama dengan melihat status: nomor pendaftaran DAN tanggal
+     * lahir anak harus cocok. Jadi berkas berisi data anak orang lain tidak
+     * bisa diunduh hanya dengan menebak nomornya.
+     */
+    public function bukti(Request $request): Response
+    {
+        $pendaftaran = $this->cariMandiri($request);
+
+        // Hanya tercapai bila isian tersembunyinya diubah, karena tombol unduh
+        // cuma muncul setelah datanya ketemu.
+        abort_if($pendaftaran === null, 404);
+
+        $pdf = Pdf::loadView('pendaftaran.bukti', [
+            'pendaftaran' => $pendaftaran,
+            'logo' => $this->logoPdf(),
+            'diunduhPada' => now(),
+        ])->setPaper('a4');
+
+        return $pdf->download('bukti-pendaftaran-'.$pendaftaran->nomor_pendaftaran.'.pdf');
+    }
+
+    /**
+     * Pencarian mandiri oleh orang tua: nomor pendaftaran + tanggal lahir.
+     *
+     * Ditulis sekali di sini supaya halaman cek status dan unduhan bukti tidak
+     * bisa menyimpang syaratnya diam-diam.
+     */
+    private function cariMandiri(Request $request): ?Pendaftaran
+    {
         $validated = $request->validate([
             'nomor_pendaftaran' => ['required', 'string', 'max:32'],
             'tanggal_lahir' => ['required', 'date'],
@@ -114,14 +162,35 @@ class PendaftaranController extends Controller
             'tanggal_lahir' => 'tanggal lahir anak',
         ]);
 
-        $pendaftaran = Pendaftaran::query()
+        return Pendaftaran::query()
             ->where('nomor_pendaftaran', trim(strtoupper($validated['nomor_pendaftaran'])))
             ->whereDate('tanggal_lahir', $validated['tanggal_lahir'])
             ->first();
+    }
 
-        return view('pendaftaran.cek', [
-            'pendaftaran' => $pendaftaran,
-            'tidakDitemukan' => $pendaftaran === null,
-        ]);
+    /**
+     * Logo untuk kop bukti pendaftaran, sebagai data URI.
+     *
+     * @return string|null null bila belum ada logo yang diunggah
+     */
+    private function logoPdf(): ?string
+    {
+        // Logo bawaan website berbentuk SVG, dan dompdf tidak menggambarnya
+        // dengan baik. Jadi kop hanya memakai logo bila panitia sudah
+        // mengunggah PNG-nya sendiri; kalau belum, kopnya cukup teks.
+        if (Merek::pilihan('logo') !== Merek::UNGGAHAN) {
+            return null;
+        }
+
+        $berkas = public_path((string) Merek::berkas('logo'));
+
+        if (! is_file($berkas)) {
+            return null;
+        }
+
+        // Ditanam sebagai data URI, bukan diberikan sebagai jalur berkas:
+        // dompdf membatasi berkas yang boleh dibukanya lewat pengaturan
+        // chroot, dan cara ini tidak bergantung pada pengaturan itu.
+        return 'data:image/png;base64,'.base64_encode((string) file_get_contents($berkas));
     }
 }

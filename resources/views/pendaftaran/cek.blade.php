@@ -85,6 +85,23 @@
                         </div>
                     @endif
 
+                    {{-- Unduhan bukti dikirim lewat POST, bukan tautan biasa,
+                         supaya nomor pendaftaran dan tanggal lahir anak tidak
+                         ikut tercatat di riwayat peramban maupun log server. --}}
+                    <form method="POST" action="{{ route('ppdb.bukti') }}" class="mt-8">
+                        @csrf
+                        <input type="hidden" name="nomor_pendaftaran" value="{{ $pendaftaran->nomor_pendaftaran }}">
+                        <input type="hidden" name="tanggal_lahir" value="{{ $pendaftaran->tanggal_lahir->toDateString() }}">
+
+                        <x-tombol type="submit" warna="hijau" ikon="unduh" class="w-full sm:w-auto">
+                            Unduh Bukti Pendaftaran
+                        </x-tombol>
+
+                        <p class="mt-2 text-xs text-tinta-lembut">
+                            Berkas PDF, bisa disimpan atau dikirim lewat WhatsApp.
+                        </p>
+                    </form>
+
                     <p class="mt-6 text-xs leading-relaxed text-tinta-lembut">
                         Ada pertanyaan tentang status ini?
                         <a

@@ -23,7 +23,7 @@ Tailwind CSS v4.
 
 | Kebutuhan | Versi |
 | --- | --- |
-| PHP | 8.2 atau lebih baru (ekstensi `pdo_mysql`, `mbstring`, `fileinfo`, `gd`) |
+| PHP | 8.2 atau lebih baru (ekstensi `pdo_mysql`, `mbstring`, `fileinfo`, `gd`, `dom`) |
 | Composer | 2.x |
 | MySQL / MariaDB | 8.0 / 10.6 ke atas |
 | Node.js | 20 ke atas |
@@ -301,6 +301,50 @@ foto galeri yang bisa diunggah sekaligus:
 upload_max_filesize = 8M
 post_max_size = 64M
 ```
+
+## Bukti pendaftaran (PDF)
+
+Orang tua bisa mengunduh bukti pendaftaran dari dua tempat: halaman konfirmasi
+tepat setelah formulir terkirim, dan halaman **Cek Status** setelah datanya
+ketemu. Hasilnya berkas PDF siap disimpan atau dikirim lewat WhatsApp &mdash;
+bukan hasil cetakan peramban, jadi tidak ikut membawa menu, tombol, dan alamat
+halaman.
+
+Dibuat dengan [dompdf](https://github.com/barryvdh/laravel-dompdf), yang
+me-render HTML jadi PDF tanpa perlu program tambahan di server:
+
+```bash
+composer require barryvdh/laravel-dompdf
+```
+
+Di server, folder font dompdf harus bisa ditulis php-fpm. Kalau terlewat,
+unduhan gagal dengan galat izin tulis padahal semua kode sudah benar:
+
+```bash
+mkdir -p storage/fonts
+sudo chown -R www-data:www-data storage/fonts
+```
+
+Isi dan tata letaknya di [`resources/views/pendaftaran/bukti.blade.php`](resources/views/pendaftaran/bukti.blade.php).
+Berkas itu **tidak boleh memakai Tailwind**: dompdf cuma mengerti sebagian kecil
+CSS dan tidak mengenal flexbox maupun grid, jadi tata letaknya pakai tabel dan
+gayanya ditulis langsung di dalam berkas itu.
+
+Beberapa hal yang disengaja:
+
+- **Rutenya POST, bukan GET.** Mengunduh butuh nomor pendaftaran *dan* tanggal
+  lahir anak, sama seperti melihat status. Lewat GET keduanya akan ikut
+  tercatat di riwayat peramban, log server, dan header `Referer`.
+- **Nomor pendaftaran saja tidak cukup.** Nomornya berurutan dan gampang
+  ditebak, jadi tanpa tanggal lahir siapa pun bisa mengunduh data anak orang
+  lain.
+- **Logo cuma dipasang bila panitia sudah mengunggahnya.** Logo bawaan website
+  berbentuk SVG, dan dompdf tidak menggambar SVG dengan baik. Logo yang ada
+  ditanam sebagai data URI, bukan diberikan sebagai jalur berkas, supaya tidak
+  bergantung pada pengaturan `chroot` dompdf.
+- **Dokumennya menyatakan dirinya bukan surat penerimaan.** Bukti pendaftaran
+  gampang dibaca sebagai pengumuman diterima, jadi kalimat itu ditulis tebal di
+  kaki halaman.
 
 ## SEO
 

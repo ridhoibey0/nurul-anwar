@@ -54,7 +54,26 @@
                     </ol>
                 </div>
 
-                <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                {{-- Tindakan utama di halaman ini: inilah satu-satunya
+                     kesempatan paling mudah bagi orang tua untuk menyimpan
+                     buktinya. Dikirim lewat POST supaya nomor pendaftaran dan
+                     tanggal lahir anak tidak ikut tercatat di riwayat
+                     peramban maupun log server. --}}
+                <form method="POST" action="{{ route('ppdb.bukti') }}" class="mt-10">
+                    @csrf
+                    <input type="hidden" name="nomor_pendaftaran" value="{{ $pendaftaran->nomor_pendaftaran }}">
+                    <input type="hidden" name="tanggal_lahir" value="{{ $pendaftaran->tanggal_lahir->toDateString() }}">
+
+                    <x-tombol type="submit" warna="koral" ikon="unduh" ukuran="lg">
+                        Unduh Bukti Pendaftaran
+                    </x-tombol>
+
+                    <p class="mt-2 text-xs text-tinta-lembut">
+                        Berkas PDF, bisa disimpan atau dikirim lewat WhatsApp.
+                    </p>
+                </form>
+
+                <div class="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
                     <x-tombol :href="route('ppdb.cek')" warna="hijau" ikon="cari">
                         Cek Status Pendaftaran
                     </x-tombol>
@@ -72,8 +91,10 @@
             </div>
 
             <p class="mt-6 text-center text-xs text-tinta-lembut">
-                Halaman ini hanya tampil sekali setelah formulir terkirim. Pastikan nomor
-                pendaftaran sudah Anda catat atau difoto.
+                Halaman ini hanya tampil sekali setelah formulir terkirim. Unduh buktinya
+                sekarang, atau catat nomor pendaftarannya &mdash; nomor itu beserta tanggal
+                lahir anak dipakai untuk membuka kembali data ini kapan saja lewat menu
+                Cek Status.
             </p>
         </div>
     </section>
