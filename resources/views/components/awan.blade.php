@@ -4,6 +4,11 @@
     Pembatas antar-section berbentuk gumpalan awan.
     Warna diambil dari class text-* yang dipasang, mis.
     <x-awan class="text-krem" /> membuat awan berwarna krem.
+
+    Awan penutup (di bawah sebuah blok berwarna) harus jadi elemen terakhir di
+    dalam blok itu, dan bloknya TIDAK boleh punya padding bawah -- sisa padding
+    sekecil apa pun tampak sebagai pita warna di bawah lengkungannya. Beri
+    jarak dari isi lewat mt-* pada awannya, bukan pb-* pada bloknya.
 --}}
 
 <div {{ $attributes->merge(['class' => 'pointer-events-none w-full'.($balik ? ' rotate-180' : '')]) }} aria-hidden="true">

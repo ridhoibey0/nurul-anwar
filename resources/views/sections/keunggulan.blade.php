@@ -1,7 +1,10 @@
 <section id="keunggulan" class="relative bg-krem">
     <x-awan class="text-hijau-800" />
 
-    <div class="bg-hijau-800 pb-4 pt-2 sm:pb-8">
+    {{-- pb-0 disengaja: awan penutup di bawah harus menempel persis ke tepi
+         blok hijau ini. Padding bawah sekecil apa pun menyisakan pita hijau
+         di bawah lengkungannya. Jarak dari isi diatur mt-16 pada awannya. --}}
+    <div class="bg-hijau-800 pb-0 pt-2">
         <div class="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-10">
             <x-judul
                 rintisan="Kenapa orang tua memilih kami"
